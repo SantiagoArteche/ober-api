@@ -1,4 +1,4 @@
-import { MongoDB } from "./data/mongo-db/init";
+import { MongoDB } from "./infraestructure/data/mongo-db/init";
 import { AppServer } from "./presentation/server";
 
 const main = async () => {
