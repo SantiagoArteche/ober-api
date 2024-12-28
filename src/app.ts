@@ -1,5 +1,12 @@
-(() => {
-  main();
-})();
+import { MongoDB } from "./data/mongo-db/init";
+import { AppServer } from "./presentation/server";
 
-function main() {}
+const main = async () => {
+  const server = new AppServer();
+  server.start();
+  await MongoDB.init();
+};
+
+(async () => {
+  await main();
+})();
