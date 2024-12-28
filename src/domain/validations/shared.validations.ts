@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { validationResult } from "express-validator";
+import { validationResult, param } from "express-validator";
 
-export const handleAuthVal = (
+export const handleValidation = (
   request: Request,
   response: Response,
   next: NextFunction
@@ -12,3 +12,13 @@ export const handleAuthVal = (
   }
   next();
 };
+
+export const idValidation = [
+  param("id")
+    .notEmpty()
+    .withMessage("Id is required")
+    .isMongoId()
+    .withMessage("Id must be in Mongo ID format"),
+
+  handleValidation,
+];

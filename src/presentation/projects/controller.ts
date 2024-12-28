@@ -6,6 +6,7 @@ import { ProjectService } from "../../application/services/projects/service";
 
 export class ProjectController {
   constructor(public readonly projectService: ProjectService) {}
+
   public getAllProjects = async (request: Request, response: Response) => {
     this.projectService
       .getAllProjects()

@@ -1,6 +1,5 @@
 import { Response, Request } from "express";
 
-
 import { CustomError } from "../../domain/errors/custom-errors";
 import { AuthService } from "../../application/services/auth/service";
 
@@ -30,7 +29,10 @@ export class AuthController {
     this.authService
       .login({ email, password })
       .then((login) => {
-        response.setHeader("x-auth", login.token);
+        response.cookie("auth_token", login.token, {
+          maxAge: 2 * 60 * 60 * 1000,
+        });
+
         return response.json(login);
       })
       .catch((error) => CustomError.handleErrors(error, response));
@@ -42,7 +44,7 @@ export class AuthController {
     this.authService
       .logout(token)
       .then((logout) => {
-        response.removeHeader("x-auth");
+        response.clearCookie("auth_token");
         return response.json(logout);
       })
       .catch((error) => CustomError.handleErrors(error, response));

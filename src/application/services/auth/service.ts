@@ -50,14 +50,14 @@ export class AuthService {
       });
 
       if (!findUserByEmail) {
-        throw CustomError.badRequest(`Wrong credentials`); // Se que iría 404 not found,
+        throw CustomError.unauthorized(`Wrong credentials`); // Se que iría 404 not found,
         // pero utilizo esto para no dar pistas si existe o no el usuario con el email (en caso de atacantes)
       }
 
       if (
         !Hash.unHashPassword(credentials.password, findUserByEmail.password)
       ) {
-        throw CustomError.badRequest(`Wrong credentials`);
+        throw CustomError.unauthorized(`Wrong credentials`);
         // No se da pistas si lo que esta mal es el email o el password.
       }
 

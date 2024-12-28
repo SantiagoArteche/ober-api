@@ -1,18 +1,9 @@
 import { body, param } from "express-validator";
-import { handleAuthVal } from "./shared.validations";
+import { handleValidation } from "./shared.validations";
 import mongoose from "mongoose";
 import { userModel } from "../../infraestructure/data/mongo-db/models/user.model";
 import { taskModel } from "../../infraestructure/data/mongo-db/models/task.model";
-
-export const idValidation = [
-  param("id")
-    .notEmpty()
-    .withMessage("Id is required")
-    .isMongoId()
-    .withMessage("Id must be in Mongo ID format"),
-
-  handleAuthVal,
-];
+import { CustomError } from "../errors/custom-errors";
 
 const taskAndUserValidation = [
   body("users")
@@ -21,12 +12,14 @@ const taskAndUserValidation = [
     .custom(async (users) => {
       for (const userId of users) {
         if (!mongoose.Types.ObjectId.isValid(userId)) {
-          throw new Error(`User ID ${userId} is not a valid ObjectId`);
+          throw CustomError.badRequest(
+            `User ID ${userId} is not a valid ObjectId`
+          );
         }
 
         const findUser = await userModel.findById(userId);
         if (!findUser) {
-          throw new Error(`User with id ${userId} not found`);
+          throw CustomError.notFound(`User with id ${userId} not found`);
         }
       }
       return true;
@@ -39,12 +32,14 @@ const taskAndUserValidation = [
     .custom(async (tasks) => {
       for (const taskId of tasks) {
         if (!mongoose.Types.ObjectId.isValid(taskId)) {
-          throw new Error(`Task ID ${taskId} is not a valid ObjectId`);
+          throw CustomError.badRequest(
+            `Task ID ${taskId} is not a valid ObjectId`
+          );
         }
 
         const findTask = await taskModel.findById(taskId);
         if (!findTask) {
-          throw new Error(`Task with id ${taskId} not found`);
+          throw CustomError.notFound(`Task with id ${taskId} not found`);
         }
       }
       return true;
@@ -57,17 +52,25 @@ export const createProjectValidation = [
     .notEmpty()
     .withMessage("Name is required")
     .isString()
-    .withMessage("Name must be a string"),
+    .withMessage("Name must be a string")
+    .isLength({ min: 3, max: 40 })
+    .withMessage("Name must be between 3 and 40 characters long"),
 
   ...taskAndUserValidation,
 
-  handleAuthVal,
+  handleValidation,
 ];
 
 export const updateProjectValidation = [
-  body("name").isString().withMessage("Name must be a string").optional(),
+  body("name")
+    .isString()
+    .withMessage("Name must be a string")
+    .isLength({ min: 3, max: 40 })
+    .withMessage("Name must be between 3 and 40 characters long")
+    .optional(),
+
   ...taskAndUserValidation,
-  handleAuthVal,
+  handleValidation,
 ];
 
 export const assignUserToProjectValidation = [
@@ -83,5 +86,5 @@ export const assignUserToProjectValidation = [
     .isMongoId()
     .withMessage("projectId must be in Mongo ID format"),
 
-  handleAuthVal,
+  handleValidation,
 ];

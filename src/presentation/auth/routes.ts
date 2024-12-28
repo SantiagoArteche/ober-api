@@ -2,11 +2,11 @@ import { Router } from "express";
 import { AuthController } from "./controller";
 import {
   createUserValidations,
-  deleteUserValidations,
   loginValidations,
   logoutValidations,
 } from "../../domain/validations/auth.validations";
 import { AuthService } from "../../application/services/auth/service";
+import { idValidation } from "../../domain/validations/shared.validations";
 
 export class AuthRoutes {
   static routes = () => {
@@ -21,11 +21,7 @@ export class AuthRoutes {
 
     router.post("/new-user", createUserValidations, authController.createUser);
 
-    router.delete(
-      "/delete-user/:id",
-      deleteUserValidations,
-      authController.deleteUser
-    );
+    router.delete("/delete-user/:id", idValidation, authController.deleteUser);
 
     return router;
   };

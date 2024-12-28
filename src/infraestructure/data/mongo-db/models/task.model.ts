@@ -8,10 +8,12 @@ const taskSchema = new Schema(
     },
     description: {
       type: String,
+      default: "Empty description",
     },
     assignedTo: {
-      type: Schema.Types.ObjectId,
+      type: [Schema.Types.ObjectId],
       ref: "User",
+      default: [],
     },
     status: {
       type: String,

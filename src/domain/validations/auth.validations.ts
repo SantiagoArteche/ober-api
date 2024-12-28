@@ -1,5 +1,5 @@
 import { body, param } from "express-validator";
-import { handleAuthVal } from "./shared.validations";
+import { handleValidation } from "./shared.validations";
 
 export const loginValidations = [
   body("email")
@@ -14,7 +14,7 @@ export const loginValidations = [
     .isString()
     .withMessage("Password must be a string"),
 
-  handleAuthVal,
+  handleValidation,
 ];
 
 export const logoutValidations = [
@@ -24,7 +24,7 @@ export const logoutValidations = [
     .isJWT()
     .withMessage("Invalid JWT"),
 
-  handleAuthVal,
+  handleValidation,
 ];
 
 export const createUserValidations = [
@@ -46,15 +46,5 @@ export const createUserValidations = [
     .isString()
     .withMessage("Password must be a string"),
 
-  handleAuthVal,
-];
-
-export const deleteUserValidations = [
-  param("id")
-    .notEmpty()
-    .withMessage("Id is required")
-    .isMongoId()
-    .withMessage("Id must be in Mongo ID format"),
-
-  handleAuthVal,
+  handleValidation,
 ];
