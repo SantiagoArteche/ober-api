@@ -1,3 +1,4 @@
+import { JsonWebTokenError } from "jsonwebtoken";
 import { CustomError } from "../../domain/errors/custom-errors";
 import { JWT } from "../../infraestructure/config/jwt";
 import { userModel } from "../../infraestructure/data/mongo-db/models/user.model";
@@ -17,6 +18,9 @@ export const logout = async (token: string) => {
 
     return { msg: "Successfull logout" };
   } catch (error) {
+    if (error instanceof JsonWebTokenError) {
+      throw CustomError.badRequest(`${error}`);
+    }
     throw error;
   }
 };

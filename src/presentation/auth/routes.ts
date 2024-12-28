@@ -1,5 +1,11 @@
 import { Router } from "express";
 import { AuthController } from "./controller";
+import {
+  createUserValidations,
+  deleteUserValidations,
+  loginValidations,
+  logoutValidations,
+} from "../../domain/validations/auth.validations";
 
 export class AuthRoutes {
   static routes = () => {
@@ -7,11 +13,15 @@ export class AuthRoutes {
 
     const authController = new AuthController();
 
-    router.post("/login", authController.login);
-    router.get("/logout/:token", authController.logout);
+    router.post("/login", loginValidations, authController.login);
+    router.get("/logout/:token", logoutValidations, authController.logout);
 
-    router.post("/new-user", authController.createUser);
-    router.delete("/delete-user/:id", authController.deleteUser);
+    router.post("/new-user", createUserValidations, authController.createUser);
+    router.delete(
+      "/delete-user/:id",
+      deleteUserValidations,
+      authController.deleteUser
+    );
 
     return router;
   };
