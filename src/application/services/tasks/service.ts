@@ -1,4 +1,5 @@
 import { CustomError } from "../../../domain/errors/custom-errors";
+import { projectModel } from "../../../infraestructure/data/mongo-db/models/project.model";
 import { taskModel } from "../../../infraestructure/data/mongo-db/models/task.model";
 import { userModel } from "../../../infraestructure/data/mongo-db/models/user.model";
 import { Task } from "./interfaces";
@@ -31,6 +32,22 @@ export class TaskService {
     try {
       const newTask = await taskModel.create(task);
 
+      if (task.assignedTo.length > 0) {
+        const usersId = task.assignedTo;
+        const areUsersInProject = usersId.map(async (userId) => {
+          const isUserInProject = await this.isUserInAnyProject(
+            userId as unknown as ObjectId
+          );
+          if (!isUserInProject) {
+            throw CustomError.conflict(
+              `The user with id ${userId} is not working in any project`
+            );
+          }
+        });
+
+        await Promise.all(areUsersInProject);
+      }
+
       return { msg: "OK", newTask };
     } catch (error) {
       throw error;
@@ -40,6 +57,22 @@ export class TaskService {
   public updateTask = async (id: string, task: Task) => {
     try {
       await this.getTaskById(id);
+
+      if (task.assignedTo.length > 0) {
+        const usersId = task.assignedTo;
+        const areUsersInProject = usersId.map(async (userId) => {
+          const isUserInProject = await this.isUserInAnyProject(
+            userId as unknown as ObjectId
+          );
+          if (!isUserInProject) {
+            throw CustomError.conflict(
+              `The user with id ${userId} is not working in any project`
+            );
+          }
+        });
+
+        await Promise.all(areUsersInProject);
+      }
 
       const newTask = await taskModel.findByIdAndUpdate(
         id,
@@ -87,6 +120,16 @@ export class TaskService {
 
       if (!user) throw CustomError.notFound(`User with id ${userId} not found`);
 
+      const isUserInProject = await this.isUserInAnyProject(
+        userId as unknown as ObjectId
+      );
+
+      if (!isUserInProject) {
+        throw CustomError.conflict(
+          `The user with id ${userId} is not working in any project`
+        );
+      }
+
       if (task.assignedTo.includes(userId as unknown as ObjectId)) {
         throw CustomError.conflict(
           `User with id ${userId} is already working in the task`
@@ -117,5 +160,10 @@ export class TaskService {
     } catch (error) {
       throw error;
     }
+  };
+
+  private isUserInAnyProject = async (userId: ObjectId): Promise<boolean> => {
+    const projectCount = await projectModel.countDocuments({ users: userId });
+    return projectCount > 0;
   };
 }
