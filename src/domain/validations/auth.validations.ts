@@ -1,17 +1,5 @@
-import { NextFunction, Request, Response } from "express";
-import { body, param, validationResult } from "express-validator";
-
-const handleAuthVal = (
-  request: Request,
-  response: Response,
-  next: NextFunction
-): any => {
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    return response.status(400).json({ msg: "ERROR", errors: errors.array() });
-  }
-  next();
-};
+import { body, param } from "express-validator";
+import { handleAuthVal } from "./shared.validations";
 
 export const loginValidations = [
   body("email")
@@ -66,7 +54,7 @@ export const deleteUserValidations = [
     .notEmpty()
     .withMessage("Id is required")
     .isMongoId()
-    .withMessage("Id must be in Mongo ID format"), // Specify UUID version if needed
+    .withMessage("Id must be in Mongo ID format"),
 
   handleAuthVal,
 ];

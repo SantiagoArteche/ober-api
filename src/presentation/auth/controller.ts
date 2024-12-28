@@ -1,13 +1,16 @@
 import { Response, Request } from "express";
 
-import { createUser, deleteUser, login, logout } from "../../application/auth";
+
 import { CustomError } from "../../domain/errors/custom-errors";
+import { AuthService } from "../../application/services/auth/service";
 
 export class AuthController {
+  constructor(public readonly authService: AuthService) {}
   public createUser = async (request: Request, response: Response) => {
     const { name, email, password } = request.body;
 
-    createUser({ name, email, password })
+    this.authService
+      .createUser({ name, email, password })
       .then((newUser) => response.status(201).json(newUser))
       .catch((error) => CustomError.handleErrors(error, response));
   };
@@ -15,7 +18,8 @@ export class AuthController {
   public deleteUser = async (request: Request, response: Response) => {
     const { id } = request.params;
 
-    deleteUser(id)
+    this.authService
+      .deleteUser(id)
       .then((wasDeleted) => response.json(wasDeleted))
       .catch((error) => CustomError.handleErrors(error, response));
   };
@@ -23,7 +27,8 @@ export class AuthController {
   public login = async (request: Request, response: Response) => {
     const { email, password } = request.body;
 
-    login({ email, password })
+    this.authService
+      .login({ email, password })
       .then((login) => {
         response.setHeader("x-auth", login.token);
         return response.json(login);
@@ -34,7 +39,8 @@ export class AuthController {
   public logout = async (request: Request, response: Response) => {
     const { token } = request.params;
 
-    logout(token)
+    this.authService
+      .logout(token)
       .then((logout) => {
         response.removeHeader("x-auth");
         return response.json(logout);
