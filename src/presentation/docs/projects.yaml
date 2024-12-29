@@ -16,7 +16,6 @@ components:
           items:
             type: string
           example: ["userId1", "userId2"]
-      # La propiedad `tasks` solo aparecerá en las respuestas, no en las solicitudes.
     ProjectResponse:
       type: object
       properties:
@@ -24,12 +23,20 @@ components:
           type: string
           example: "OK"
         project:
-          $ref: "#/components/schemas/Project"
-        tasks:
-          type: array
-          items:
-            type: object
-          example: []
+          properties:
+            name:
+              type: string
+              example: "Nombre del Proyecto"
+            users:
+              type: array
+              items:
+                type: string
+              example: ["userId1", "userId2"]
+            tasks:
+              type: array
+              items:
+                type: object
+              example: ["taskId1", "taskId2"]
     ProjectsResponse:
       type: object
       properties:
@@ -39,7 +46,21 @@ components:
         projects:
           type: array
           items:
-            $ref: "#/components/schemas/Project"
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Nombre del Proyecto"
+              users:
+                type: array
+                items:
+                  type: string
+                example: ["userId1", "userId2"]
+              tasks:
+                type: array
+                items:
+                  type: object
+                example: ["taskId1", "taskId2"]
         totalDocuments:
           type: integer
           example: 100

@@ -179,7 +179,7 @@ export const changeTaskStateValidation = [
     .withMessage("status must be a string")
     .custom((task) => {
       const validTasks = ["pending", "in progress", "completed"];
-      console.log(task);
+
       if (!validTasks.includes(task)) {
         throw CustomError.badRequest(
           `Invalid status, valid ones are: [${validTasks}]`

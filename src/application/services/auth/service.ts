@@ -4,13 +4,32 @@ import { Hash } from "../../../infraestructure/config/bcrypt";
 import { JWT } from "../../../infraestructure/config/jwt";
 import { userModel } from "../../../infraestructure/data/mongo-db/models/user.model";
 import { User, Credentials } from "./interfaces";
+import Logger from "../../../infraestructure/config/logger";
 
 export class AuthService {
+  constructor(private readonly logger: Logger = new Logger()) {}
+
+  public getUsers = async () => {
+    try {
+      const users = await userModel.find().select("_id name email");
+
+      return users;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   public createUser = async (userData: User) => {
     try {
       const findUser = await userModel.findOne({ email: userData.email });
 
       if (findUser) {
+        this.logger.warning(
+          "User creation failed: email already exists" +
+            JSON.stringify({
+              email: userData.email,
+            })
+        );
         throw CustomError.badRequest(
           `User with email ${userData.email} already exists`
         );
@@ -21,6 +40,14 @@ export class AuthService {
         password: Hash.hashPassword(userData.password),
       });
 
+      this.logger.info(
+        "User created successfully" +
+          JSON.stringify({
+            id: newUser._id,
+            email: newUser.email,
+          })
+      );
+
       return {
         msg: "User created",
         newUser: {
@@ -30,6 +57,7 @@ export class AuthService {
         },
       };
     } catch (error) {
+      this.logger.error("Error creating user " + error);
       throw error;
     }
   };
@@ -39,13 +67,17 @@ export class AuthService {
       const findUser = await userModel.findById(id);
 
       if (!findUser) {
+        this.logger.warning("User deletion failed: user not found " + id);
         throw CustomError.notFound(`User with id ${id} not found`);
       }
 
       await userModel.findByIdAndDelete(id);
 
+      this.logger.info("User deleted successfully " + id);
+
       return { msg: `User with id ${id} was deleted` };
     } catch (error) {
+      this.logger.error("Error deleting user " + JSON.stringify({ id, error }));
       throw error;
     }
   };
@@ -57,15 +89,27 @@ export class AuthService {
       });
 
       if (!findUserByEmail) {
-        throw CustomError.unauthorized(`Wrong credentials`); // Se que iría 404 not found,
-        // pero utilizo esto para no dar pistas si existe o no el usuario con el email (en caso de atacantes)
+        this.logger.warning(
+          "Login failed: wrong credentials " +
+            JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            })
+        );
+        throw CustomError.unauthorized(`Wrong credentials`);
       }
 
       if (
         !Hash.unHashPassword(credentials.password, findUserByEmail.password)
       ) {
+        this.logger.warning(
+          "Login failed: wrong credentials " +
+            JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            })
+        );
         throw CustomError.unauthorized(`Wrong credentials`);
-        // No se da pistas si lo que esta mal es el email o el password.
       }
 
       const token = await JWT.generate(
@@ -77,11 +121,21 @@ export class AuthService {
       );
 
       if (!token) {
+        this.logger.error(`Login failed: JWT generation error`);
         throw CustomError.internalServerError(`JWT error`);
       }
 
-      return { msg: "Successfull login", token };
+      this.logger.info(`User logged in successfully ${credentials.email}`);
+
+      return { msg: "Successful login", token };
     } catch (error) {
+      this.logger.error(
+        "Error during login " +
+          JSON.stringify({
+            email: credentials.email,
+            error,
+          })
+      );
       throw error;
     }
   };
@@ -90,20 +144,40 @@ export class AuthService {
     try {
       const verify = await JWT.decode(token);
 
-      if (!verify) throw CustomError.badRequest(`Invalid JWT`);
+      if (!verify) {
+        this.logger.warning("Logout failed: invalid JWT " + token);
+        throw CustomError.badRequest(`Invalid JWT`);
+      }
 
       const findUser = await userModel.findById(verify.id);
 
       if (!findUser || findUser.email !== verify.email) {
-        throw CustomError.badRequest(`Invalid JWT`); // Se que esto sería not 404 found,
-        // pero pongo invalid jwt para no dar indicaciones si existe o no el usuario con ese token y evitar atacantes
+        this.logger.warning("Logout failed: invalid JWT " + token);
+        throw CustomError.badRequest(`Invalid JWT`);
       }
 
-      return { msg: "Successfull logout" };
+      this.logger.info(
+        `User logged out successfully ${JSON.stringify({
+          id: verify.id,
+          email: verify.email,
+        })}}`
+      );
+
+      return { msg: "Successful logout" };
     } catch (error) {
       if (error instanceof JsonWebTokenError) {
+        this.logger.error(
+          `JWT decoding error during logout ${JSON.stringify({
+            token,
+            error,
+          })}}`
+        );
         throw CustomError.badRequest(`${error}`);
       }
+
+      this.logger.error(
+        `Error during logout ${JSON.stringify({ token, error })}}`
+      );
       throw error;
     }
   };

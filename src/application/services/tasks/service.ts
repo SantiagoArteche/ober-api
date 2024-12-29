@@ -6,13 +6,17 @@ import { Task, TaskParams } from "./interfaces";
 import { ObjectId } from "mongodb";
 import { Pagination } from "../shared/interfaces";
 import mongoose from "mongoose";
+import Logger from "../../../infraestructure/config/logger";
 
 export class TaskService {
+  constructor(private readonly logger: Logger = new Logger()) {}
+
   public getAllTasks = async (
     { status, endDate, userAssigned }: TaskParams,
     { skip, limit }: Pagination
   ) => {
     try {
+    
       const filters: any = {};
 
       if (status) {
@@ -36,6 +40,15 @@ export class TaskService {
 
       const currentPage = Math.ceil(skip! / limit + 1);
       const totalPages = Math.ceil(totalDocuments / limit);
+
+      this.logger.info(
+        `Tasks fetched successfully ${JSON.stringify({
+          totalDocuments,
+          currentPage,
+          totalPages,
+        })}`
+      );
+
       return {
         msg: "OK",
         tasks: allTasks,
@@ -57,6 +70,7 @@ export class TaskService {
             : null,
       };
     } catch (error) {
+      this.logger.error(`Error fetching tasks: ${error}`);
       throw error;
     }
   };
@@ -65,40 +79,70 @@ export class TaskService {
     try {
       const findTask = await taskModel.findById(id);
 
-      if (!findTask) throw CustomError.notFound(`Task with id ${id} not found`);
+      if (!findTask) {
+        this.logger.warning(`Task with id ${id} not found`);
+        throw CustomError.notFound(`Task with id ${id} not found`);
+      }
 
+      this.logger.info("Task fetched successfully " + id);
       return { msg: "OK", task: findTask };
     } catch (error) {
+      this.logger.error(
+        "Error fetching task by id " + JSON.stringify({ id, error })
+      );
       throw error;
     }
   };
 
   public getTasksByName = async (name: string) => {
     try {
-      const findTasks = await taskModel.find({ name }); //findOne en caso de desear una
+      const findTasks = await taskModel.find({ name });
 
       if (!findTasks.length) {
+        this.logger.warning(`Tasks with name ${name} not found`);
         throw CustomError.notFound(`Tasks with name ${name} not found`);
       }
 
+      this.logger.info(
+        "Tasks fetched successfully by name " + JSON.stringify({ name })
+      );
       return { msg: "OK", task: findTasks };
     } catch (error) {
+      this.logger.error(
+        "Error fetching tasks by name " + JSON.stringify({ name, error })
+      );
       throw error;
     }
   };
 
   public getTasksByDescription = async (description: string) => {
     try {
-      const findTasks = await taskModel.find({ description }); //findOne en caso de desear una
+      const findTasks = await taskModel.find({ description });
 
-      if (!findTasks) {
+      if (!findTasks.length) {
+        this.logger.warning(
+          `Tasks with description ${description} not found    `
+        );
         throw CustomError.notFound(
           `Tasks with description ${description} not found`
         );
       }
 
+      this.logger.info(
+        "Tasks fetched successfully by description " +
+          JSON.stringify({
+            description,
+          })
+      );
       return { msg: "OK", task: findTasks };
     } catch (error) {
+      this.logger.error(
+        "Error fetching tasks by description " +
+          JSON.stringify({
+            description,
+            error,
+          })
+      );
       throw error;
     }
   };
@@ -114,6 +158,7 @@ export class TaskService {
         .session(session);
 
       if (!findProject) {
+        this.logger.warning(`Project with id ${task.projectId} not found`);
         throw CustomError.notFound(
           `Project with id ${task.projectId} not found`
         );
@@ -129,6 +174,9 @@ export class TaskService {
           );
 
           if (!isUserInProject) {
+            this.logger.warning(
+              `The user with id ${userId} is not working in the project ${task.projectId}`
+            );
             throw CustomError.conflict(
               `The user with id ${userId} is not working in the project ${task.projectId}`
             );
@@ -149,9 +197,13 @@ export class TaskService {
       );
 
       await session.commitTransaction();
+      this.logger.info(
+        "Task created successfully " + JSON.stringify({ newTask: newTask[0] })
+      );
       return { msg: "OK", newTask: newTask[0] };
     } catch (error) {
       await session.abortTransaction();
+      this.logger.error("Error creating task " + JSON.stringify({ error }));
       throw error;
     } finally {
       session.endSession();
@@ -172,6 +224,7 @@ export class TaskService {
           .session(session);
 
         if (!findProject) {
+          this.logger.warning(`Project with id ${task.projectId} not found`);
           throw CustomError.notFound(
             `Project with id ${task.projectId} not found`
           );
@@ -189,6 +242,11 @@ export class TaskService {
           );
 
           if (!isUserInProject) {
+            this.logger.warning(
+              `User with id ${userId} is not part of project ${
+                task.projectId || findTask.task.projectId
+              }`
+            );
             throw CustomError.conflict(
               `The user with id ${userId} is not working in the project ${task.projectId}`
             );
@@ -233,9 +291,21 @@ export class TaskService {
       }
 
       await session.commitTransaction();
+
+      this.logger.info(
+        `Task with id ${id} updated successfully - ${JSON.stringify({
+          updatedTask,
+        })}`
+      );
+
       return { msg: "OK", updatedTask };
     } catch (error) {
       await session.abortTransaction();
+      this.logger.error(
+        `Error updating task with id ${id} - ${JSON.stringify({
+          error,
+        })}`
+      );
       throw error;
     } finally {
       session.endSession();
@@ -254,22 +324,39 @@ export class TaskService {
         { new: true }
       );
 
+      this.logger.info(
+        "Task state changed successfully " + JSON.stringify({ status })
+      );
+
       return { msg: "Status updated", updateTaskState };
     } catch (error) {
+      this.logger.error(
+        "Error creating changing task state " + JSON.stringify({ error })
+      );
       throw error;
     }
   };
 
   public assignTaskToUser = async (taskId: string, userId: string) => {
     try {
+      this.logger.info(
+        "Assigning user to task " + JSON.stringify({ taskId, userId })
+      );
+
       const [task, user] = await Promise.all([
         taskModel.findById(taskId),
         userModel.findById(userId),
       ]);
 
-      if (!task) throw CustomError.notFound(`Task with id ${taskId} not found`);
+      if (!task) {
+        this.logger.warning("Task not found for assignment " + taskId);
+        throw CustomError.notFound(`Task with id ${taskId} not found`);
+      }
 
-      if (!user) throw CustomError.notFound(`User with id ${userId} not found`);
+      if (!user) {
+        this.logger.warning("User not found for assignment " + userId);
+        throw CustomError.notFound(`User with id ${userId} not found`);
+      }
 
       const isUserInProject = await this.isUserInAnyProject(
         userId as unknown as ObjectId,
@@ -277,12 +364,19 @@ export class TaskService {
       );
 
       if (!isUserInProject) {
+        this.logger.warning(
+          "User not in project for task assignment " +
+            JSON.stringify({ userId, projectId: task.projectId })
+        );
         throw CustomError.conflict(
           `The user with id ${userId} is not working in the project ${task.projectId}`
         );
       }
 
       if (task.assignedTo.includes(userId as unknown as ObjectId)) {
+        this.logger.warning(
+          "User already assigned to task " + JSON.stringify({ taskId, userId })
+        );
         throw CustomError.conflict(
           `User with id ${userId} is already working in the task`
         );
@@ -296,8 +390,16 @@ export class TaskService {
         { new: true }
       );
 
+      this.logger.info(
+        "User assigned to task successfully " +
+          JSON.stringify({ taskId, userId })
+      );
       return { msg: "User assigned", task: assignTask };
     } catch (error) {
+      this.logger.error(
+        "Error assigning user to task " +
+          JSON.stringify({ taskId, userId, error })
+      );
       throw error;
     }
   };
@@ -312,6 +414,7 @@ export class TaskService {
       const task = await taskModel.findByIdAndDelete(id, { session });
 
       if (!task) {
+        this.logger.warning("Task not found for deletion " + id);
         throw CustomError.notFound(`Task with id ${id} not found`);
       }
 
@@ -332,9 +435,11 @@ export class TaskService {
       }
 
       await session.commitTransaction();
+      this.logger.info("Task deleted successfully " + id);
       return { msg: `Task with id ${id} was deleted` };
     } catch (error) {
       await session.abortTransaction();
+      this.logger.error("Error deleting task " + JSON.stringify({ id, error }));
       throw error;
     } finally {
       session.endSession();
@@ -345,8 +450,26 @@ export class TaskService {
     userId: ObjectId,
     projectId: ObjectId
   ): Promise<boolean> => {
-    const findProject = await projectModel.findById(projectId);
-
-    return !!findProject?.users.includes(userId);
+    try {
+      this.logger.info(
+        "Checking if user is in any project " +
+          JSON.stringify({
+            userId,
+            projectId,
+          })
+      );
+      const findProject = await projectModel.findById(projectId);
+      return !!findProject?.users.includes(userId);
+    } catch (error) {
+      this.logger.error(
+        "Error checking user in project " +
+          JSON.stringify({
+            userId,
+            projectId,
+            error,
+          })
+      );
+      throw error;
+    }
   };
 }

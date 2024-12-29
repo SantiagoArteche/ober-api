@@ -6,8 +6,11 @@ import { Project } from "./interfaces";
 import { Pagination } from "../shared/interfaces";
 import { taskModel } from "../../../infraestructure/data/mongo-db/models/task.model";
 import mongoose from "mongoose";
+import Logger from "../../../infraestructure/config/logger";
 
 export class ProjectService {
+  constructor(private readonly logger: Logger = new Logger()) {}
+
   public getAllProjects = async ({ skip, limit }: Pagination) => {
     try {
       const allProjects = await projectModel
@@ -19,6 +22,9 @@ export class ProjectService {
 
       const currentPage = Math.ceil(skip! / limit + 1);
       const totalPages = Math.ceil(totalDocuments / limit);
+
+      this.logger.info("Successfully fetched all projects.");
+
       return {
         msg: "OK",
         projects: allProjects,
@@ -41,6 +47,7 @@ export class ProjectService {
             : null,
       };
     } catch (error) {
+      this.logger.error(`Error fetching all projects: ${error}`);
       throw error;
     }
   };
@@ -50,11 +57,15 @@ export class ProjectService {
       const findProject = await projectModel.findById(id);
 
       if (!findProject) {
+        this.logger.warning(`Project with id: ${id} not found.`);
         throw CustomError.notFound(`Project with id ${id} not found`);
       }
 
+      this.logger.info(`Successfully fetched project with id: ${id}`);
+
       return { msg: "OK", project: findProject };
     } catch (error) {
+      this.logger.error(`Error fetching project with id: ${id}, ${error}`);
       throw error;
     }
   };
@@ -64,8 +75,13 @@ export class ProjectService {
       const { tasks, ...rest } = projectData;
       const newProject = await projectModel.create(rest);
 
+      this.logger.info(
+        `Project created successfully with id: ${newProject._id}`
+      );
+
       return { msg: "Project created", newProject };
     } catch (error) {
+      this.logger.error(`Error creating project: ${error}`);
       throw error;
     }
   };
@@ -78,13 +94,16 @@ export class ProjectService {
         id,
         {
           name: name && name,
-          users: users && users, //Array.from(new Set(users)) para evitar repetidos
+          users: users && users,
         },
         { new: true }
       );
 
+      this.logger.info(`Project with id: ${id} updated successfully.`);
+
       return { msg: "Project updated", updatedProject: updateProject };
     } catch (error) {
+      this.logger.error(`Error updating project with id: ${id}, ${error}`);
       throw error;
     }
   };
@@ -97,6 +116,7 @@ export class ProjectService {
       const findProject = await this.getProjectById(id);
 
       if (!findProject) {
+        this.logger.warning(`Project with id: ${id} not found for deletion.`);
         throw CustomError.notFound(`Project with id ${id} not found`);
       }
 
@@ -109,9 +129,13 @@ export class ProjectService {
       await projectModel.findByIdAndDelete(id, { session });
 
       await session.commitTransaction();
+
+      this.logger.info(`Project with id: ${id} deleted successfully.`);
+
       return { msg: `Project with id ${id} was deleted` };
     } catch (error) {
       await session.abortTransaction();
+      this.logger.error(`Error deleting project with id: ${id}, ${error}`);
       throw error;
     } finally {
       session.endSession();
@@ -126,14 +150,19 @@ export class ProjectService {
       ]);
 
       if (!project) {
+        this.logger.warning(`Project with id: ${projectId} not found.`);
         throw CustomError.notFound(`Project with id ${projectId} not found`);
       }
 
       if (!user) {
+        this.logger.warning(`User with id: ${userId} not found.`);
         throw CustomError.notFound(`User with id ${userId} not found`);
       }
 
       if (project.users.includes(userId as unknown as ObjectId)) {
+        this.logger.warning(
+          `User with id: ${userId} is already assigned to project with id: ${projectId}`
+        );
         throw CustomError.conflict(
           `The user with id ${userId} is already working in the project`
         );
@@ -147,8 +176,15 @@ export class ProjectService {
         { new: true }
       );
 
+      this.logger.info(
+        `User with id: ${userId} successfully assigned to project with id: ${projectId}`
+      );
+
       return { msg: "OK", projectUpdated: updateProject };
     } catch (error) {
+      this.logger.error(
+        `Error assigning user with id: ${userId} to project with id: ${projectId}, ${error}`
+      );
       throw error;
     }
   };

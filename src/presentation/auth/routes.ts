@@ -15,8 +15,10 @@ export class AuthRoutes {
     const authService = new AuthService();
 
     const authController = new AuthController(authService);
+    router.get("/users", authController.getUsers);
 
     router.post("/login", loginValidations, authController.login);
+
     router.get("/logout/:token", logoutValidations, authController.logout);
 
     router.post("/new-user", createUserValidations, authController.createUser);

@@ -15,6 +15,7 @@ import {
 import { AuthMiddleware } from "../../domain/middlewares/auth.middleware";
 import { getAllTasksValidation } from "../../domain/validations/task.validation";
 
+
 export class TaskRoutes {
   static routes = () => {
     const router = Router();
