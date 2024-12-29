@@ -30,6 +30,9 @@ export class AuthController {
       .login({ email, password })
       .then((login) => {
         response.cookie("auth_token", login.token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
           maxAge: 2 * 60 * 60 * 1000,
         });
 

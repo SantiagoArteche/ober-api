@@ -21,7 +21,14 @@ export class AuthService {
         password: Hash.hashPassword(userData.password),
       });
 
-      return { msg: "User created", newUser };
+      return {
+        msg: "User created",
+        newUser: {
+          id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+        },
+      };
     } catch (error) {
       throw error;
     }

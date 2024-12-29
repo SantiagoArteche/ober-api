@@ -1,0 +1,326 @@
+openapi: 3.0.0
+info:
+  title: Task API
+  version: 1.0.0
+
+components:
+  schemas:
+    Task:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Task Name"
+        description:
+          type: string
+          example: "Task Description"
+        assignedTo:
+          type: array
+          items:
+            type: string
+          example: ["userId1", "userId2"]
+        status:
+          type: string
+          example: "pending"
+        endDate:
+          type: string
+          format: date
+          example: "2023-12-31"
+        projectId:
+          type: string
+          example: "676ff105faab8854b63521e5"
+    TaskResponse:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "OK"
+        task:
+          $ref: "#/components/schemas/Task"
+    TasksResponse:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "OK"
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        totalDocuments:
+          type: integer
+          example: 100
+        limit:
+          type: integer
+          example: 10
+        skip:
+          type: integer
+          example: 0
+        page:
+          type: integer
+          example: 1
+        prev:
+          type: string
+          example: "http://localhost:8000/api/tasks?limit=10&skip=0"
+        next:
+          type: string
+          example: "http://localhost:8000/api/tasks?limit=10&skip=20"
+
+paths:
+  /api/tasks:
+    get:
+      summary: Obtener todas las tareas
+      tags:
+        - Tareas
+      description: Recupera una lista de tareas con filtros opcionales.
+      parameters:
+        - name: status
+          in: query
+          description: Filtrar tareas por estado
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          description: Filtrar tareas por fecha de finalización (formato YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: userAssigned
+          in: query
+          description: Filtrar tareas por usuario asignado
+          schema:
+            type: string
+        - name: skip
+          in: query
+          description: Número de registros a omitir
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          description: Número de registros a devolver
+          schema:
+            type: integer
+            default: 10
+      responses:
+        200:
+          description: Una lista de tareas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TasksResponse"
+        400:
+          description: Solicitud inválida
+        500:
+          description: Error interno del servidor
+    post:
+      summary: Crear una nueva tarea
+      tags:
+        - Tareas
+      description: Crear una nueva tarea con los detalles proporcionados.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Tarea de ejemplo"
+                description:
+                  type: string
+                  example: "Descripción de la tarea"
+                assignedTo:
+                  type: array
+                  items:
+                    type: string
+                  example: ["userId1"]
+                status:
+                  type: string
+                  example: "pending"
+                endDate:
+                  type: string
+                  format: date
+                  example: "2023-12-31"
+                projectId:
+                  type: string
+                  example: "676ff105faab8854b63521e5"
+      responses:
+        201:
+          description: Tarea creada con éxito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+        400:
+          description: Entrada inválida
+        500:
+          description: Error interno del servidor
+
+  /api/tasks/{id}:
+    get:
+      summary: Obtener tarea por ID
+      tags:
+        - Tareas
+      description: Recupera una tarea individual por su ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la tarea a recuperar
+          schema:
+            type: string
+      responses:
+        200:
+          description: Tarea recuperada con éxito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+        404:
+          description: Tarea no encontrada
+        500:
+          description: Error interno del servidor
+    put:
+      summary: Actualizar tarea
+      tags:
+        - Tareas
+      description: Actualiza los detalles de una tarea existente.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la tarea a actualizar
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Tarea actualizada"
+                description:
+                  type: string
+                  example: "Descripción de la tarea actualizada"
+                assignedTo:
+                  type: array
+                  items:
+                    type: string
+                  example: ["userId1", "userId2"]
+                status:
+                  type: string
+                  example: "in-progress"
+                endDate:
+                  type: string
+                  format: date
+                  example: "2023-12-31"
+                projectId:
+                  type: string
+                  example: "676ff105faab8854b63521e5"
+      responses:
+        200:
+          description: Tarea actualizada con éxito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+        404:
+          description: Tarea no encontrada
+        400:
+          description: Entrada inválida
+        500:
+          description: Error interno del servidor
+    delete:
+      summary: Eliminar tarea
+      tags:
+        - Tareas
+      description: Elimina una tarea existente por su ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la tarea a eliminar
+          schema:
+            type: string
+      responses:
+        200:
+          description: Tarea eliminada con éxito
+        404:
+          description: Tarea no encontrada
+        500:
+          description: Error interno del servidor
+
+  /api/tasks/state/{id}:
+    put:
+      summary: Cambiar estado de tarea
+      tags:
+        - Tareas
+      description: Actualiza el estado de una tarea existente.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la tarea a actualizar
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: completed
+      responses:
+        200:
+          description: Estado de la tarea actualizado con éxito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+        404:
+          description: Tarea no encontrada
+        400:
+          description: Entrada inválida
+        500:
+          description: Error interno del servidor
+
+  /api/tasks/{taskId}/users/{userId}:
+    put:
+      summary: Asignar tarea a usuario
+      tags:
+        - Tareas
+      description: Asigna una tarea existente a un usuario.
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: ID de la tarea a asignar
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          description: ID del usuario al que asignar la tarea
+          schema:
+            type: string
+      responses:
+        200:
+          description: Tarea asignada con éxito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+        404:
+          description: Tarea o usuario no encontrado
+        400:
+          description: Entrada inválida
+        500:
+          description: Error interno del servidor

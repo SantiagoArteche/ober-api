@@ -1,0 +1,183 @@
+openapi: 3.0.0
+info:
+  title: Auth API
+  version: 1.0.0
+
+paths:
+  /api/auth/login:
+    post:
+      summary: Iniciar sesión de usuario
+      tags:
+        - Auth
+      description: Permite a un usuario iniciar sesión utilizando su correo electrónico y contraseña.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "usuario@ejemplo.com"
+                password:
+                  type: string
+                  format: password
+                  example: "contraseña123"
+      responses:
+        "200":
+          description: Inicio de sesión exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Inicio de sesión exitoso"
+                  token:
+                    type: string
+                    example: "JWT-TOKEN"
+        "401":
+          description: Credenciales incorrectas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Credenciales incorrectas"
+
+  /api/auth/logout/{token}:
+    get:
+      summary: Cerrar sesión de usuario
+      tags:
+        - Auth
+      description: Permite a un usuario cerrar sesión utilizando su token JWT.
+      operationId: logoutUser
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Token de autenticación del usuario.
+      responses:
+        "200":
+          description: Cierre de sesión exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Cierre de sesión exitoso"
+        "400":
+          description: Token inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "JWT inválido"
+
+  /api/auth/new-user:
+    post:
+      summary: Crear un nuevo usuario
+      tags:
+        - Auth
+      description: Permite crear un nuevo usuario proporcionando un nombre, correo electrónico y contraseña.
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Juan Pérez"
+                email:
+                  type: string
+                  format: email
+                  example: "usuario@ejemplo.com"
+                password:
+                  type: string
+                  format: password
+                  example: "contraseña123"
+      responses:
+        "201":
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Usuario creado"
+                  newUser:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "60a5a76d5b7e4d4a8d1b3f35"
+                      name:
+                        type: string
+                        example: "Juan Pérez"
+                      email:
+                        type: string
+                        example: "usuario@ejemplo.com"
+        "400":
+          description: El usuario ya existe o los datos son inválidos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "El usuario con el correo usuario@ejemplo.com ya existe"
+
+  /api/auth/delete-user/{id}:
+    delete:
+      summary: Eliminar un usuario
+      tags:
+        - Auth
+      description: Permite eliminar un usuario proporcionando su ID.
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "60a5a76d5b7e4d4a8d1b3f35"
+      responses:
+        "200":
+          description: Usuario eliminado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Usuario con id 60a5a76d5b7e4d4a8d1b3f35 eliminado"
+        "404":
+          description: Usuario no encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Usuario con id 60a5a76d5b7e4d4a8d1b3f35 no encontrado"

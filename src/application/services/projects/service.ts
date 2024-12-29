@@ -78,7 +78,7 @@ export class ProjectService {
         id,
         {
           name: name && name,
-          users: users && users, //Array.from(new Set(users))
+          users: users && users, //Array.from(new Set(users)) para evitar repetidos
         },
         { new: true }
       );
@@ -101,23 +101,20 @@ export class ProjectService {
       }
 
       if (findProject.project.tasks?.length) {
-        const deleteTasksInProject = findProject.project.tasks.map(
-          async (task) =>
-            await taskModel.findByIdAndDelete(task._id, { session })
-        );
-
-        await Promise.all(deleteTasksInProject);
+        for (const task of findProject.project.tasks) {
+          await taskModel.findByIdAndDelete(task._id, { session });
+        }
       }
 
       await projectModel.findByIdAndDelete(id, { session });
 
       await session.commitTransaction();
-      session.endSession();
       return { msg: `Project with id ${id} was deleted` };
     } catch (error) {
       await session.abortTransaction();
-      session.endSession();
       throw error;
+    } finally {
+      session.endSession();
     }
   };
 

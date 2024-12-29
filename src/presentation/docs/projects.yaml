@@ -1,0 +1,240 @@
+openapi: 3.0.0
+info:
+  title: API de Proyectos
+  version: 1.0.0
+
+components:
+  schemas:
+    Project:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Nombre del Proyecto"
+        users:
+          type: array
+          items:
+            type: string
+          example: ["userId1", "userId2"]
+      # La propiedad `tasks` solo aparecerá en las respuestas, no en las solicitudes.
+    ProjectResponse:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "OK"
+        project:
+          $ref: "#/components/schemas/Project"
+        tasks:
+          type: array
+          items:
+            type: object
+          example: []
+    ProjectsResponse:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "OK"
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/Project"
+        totalDocuments:
+          type: integer
+          example: 100
+        limit:
+          type: integer
+          example: 10
+        skip:
+          type: integer
+          example: 0
+        page:
+          type: integer
+          example: 1
+        prev:
+          type: string
+          example: "http://localhost:8000/api/projects?limit=10&skip=0"
+        next:
+          type: string
+          example: "http://localhost:8000/api/projects?limit=10&skip=20"
+
+paths:
+  /api/projects:
+    get:
+      summary: Obtener todos los proyectos
+      tags:
+        - Proyectos
+      description: Recupera una lista de proyectos con filtros opcionales como la cantidad de resultados, el número de página y más.
+      parameters:
+        - name: skip
+          in: query
+          description: Número de registros a omitir (paginación)
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          description: Número de registros a devolver
+          schema:
+            type: integer
+            default: 10
+      responses:
+        200:
+          description: Lista de proyectos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectsResponse"
+        400:
+          description: Solicitud inválida
+        500:
+          description: Error interno del servidor
+    post:
+      summary: Crear un nuevo proyecto
+      tags:
+        - Proyectos
+      description: Crea un nuevo proyecto con los detalles proporcionados.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Tarea de ejemplo"
+                users:
+                  type: array
+                  items:
+                    type: string
+                  example: ["userId1", "userId2"]
+      responses:
+        201:
+          description: Proyecto creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResponse"
+        400:
+          description: Entrada inválida
+        500:
+          description: Error interno del servidor
+
+  /api/projects/{id}:
+    get:
+      summary: Obtener proyecto por ID
+      tags:
+        - Proyectos
+      description: Recupera un único proyecto mediante su ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del proyecto a recuperar
+          schema:
+            type: string
+      responses:
+        200:
+          description: Proyecto recuperado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResponse"
+        404:
+          description: Proyecto no encontrado
+        500:
+          description: Error interno del servidor
+    put:
+      summary: Actualizar proyecto
+      tags:
+        - Proyectos
+      description: Actualiza los detalles de un proyecto existente.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del proyecto a actualizar
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Proyecto actualizado"
+                users:
+                  type: array
+                  items:
+                    type: string
+                  example: ["userId1", "userId2"]
+      responses:
+        200:
+          description: Proyecto actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResponse"
+        404:
+          description: Proyecto no encontrado
+        400:
+          description: Entrada inválida
+        500:
+          description: Error interno del servidor
+    delete:
+      summary: Eliminar proyecto
+      tags:
+        - Proyectos
+      description: Elimina un proyecto existente mediante su ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del proyecto a eliminar
+          schema:
+            type: string
+      responses:
+        200:
+          description: Proyecto eliminado exitosamente
+        404:
+          description: Proyecto no encontrado
+        500:
+          description: Error interno del servidor
+
+  /api/projects/{projectId}/users/{userId}:
+    put:
+      summary: Asignar usuario a proyecto
+      tags:
+        - Proyectos
+      description: Asigna un usuario a un proyecto existente.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: ID del proyecto
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          description: ID del usuario
+          schema:
+            type: string
+      responses:
+        200:
+          description: Usuario asignado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResponse"
+        404:
+          description: Proyecto o usuario no encontrado
+        400:
+          description: Entrada inválida
+        500:
+          description: Error interno del servidor

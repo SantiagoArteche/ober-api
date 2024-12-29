@@ -5,7 +5,7 @@ import { userModel } from "../../../infraestructure/data/mongo-db/models/user.mo
 import { Task, TaskParams } from "./interfaces";
 import { ObjectId } from "mongodb";
 import { Pagination } from "../shared/interfaces";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 export class TaskService {
   public getAllTasks = async (
@@ -57,8 +57,7 @@ export class TaskService {
             : null,
       };
     } catch (error) {
-      console.error("Error fetching tasks:", error);
-      throw new Error("Error fetching tasks");
+      throw error;
     }
   };
 
@@ -150,13 +149,12 @@ export class TaskService {
       );
 
       await session.commitTransaction();
-      session.endSession();
-
       return { msg: "OK", newTask: newTask[0] };
     } catch (error) {
       await session.abortTransaction();
-      session.endSession();
       throw error;
+    } finally {
+      session.endSession();
     }
   };
 
@@ -235,13 +233,12 @@ export class TaskService {
       }
 
       await session.commitTransaction();
-      session.endSession();
-
       return { msg: "OK", updatedTask };
     } catch (error) {
       await session.abortTransaction();
-      session.endSession();
       throw error;
+    } finally {
+      session.endSession();
     }
   };
 
@@ -335,13 +332,12 @@ export class TaskService {
       }
 
       await session.commitTransaction();
-      session.endSession();
       return { msg: `Task with id ${id} was deleted` };
     } catch (error) {
-      console.log(error);
       await session.abortTransaction();
-      session.endSession();
       throw error;
+    } finally {
+      session.endSession();
     }
   };
 

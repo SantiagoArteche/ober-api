@@ -13,7 +13,7 @@ export class AuthMiddleware {
 
     const findAuthToken = cookie
       ?.split(";")
-      .find((cookie) => cookie.startsWith("auth_token"));
+      .find((cookie) => cookie.trim().startsWith("auth_token"));
 
     if (!findAuthToken) {
       return response

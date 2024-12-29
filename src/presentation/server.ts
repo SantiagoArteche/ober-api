@@ -1,6 +1,7 @@
 import express from "express";
 import "dotenv/config";
 import { AppRouter } from "./routes";
+import cors from "cors";
 
 export class AppServer {
   private app = express();
@@ -9,6 +10,7 @@ export class AppServer {
   public start = () => {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(cors());
 
     this.app.use(AppRouter.routes());
 
