@@ -57,20 +57,29 @@ export class TasksController {
   };
 
   public createTask = async (request: Request, response: Response) => {
-    const { name, description, assignedTo, status, endDate } = request.body;
+    const { name, description, assignedTo, status, endDate, projectId } =
+      request.body;
 
     this.taskService
-      .createTask({ name, description, assignedTo, status, endDate })
+      .createTask({ name, description, assignedTo, status, endDate, projectId })
       .then((newTask) => response.status(201).json(newTask))
       .catch((error) => CustomError.handleErrors(error, response));
   };
 
   public updateTask = async (request: Request, response: Response) => {
     const { id } = request.params;
-    const { name, description, assignedTo, status, endDate } = request.body;
+    const { name, description, assignedTo, status, endDate, projectId } =
+      request.body;
 
     this.taskService
-      .updateTask(id, { name, description, assignedTo, status, endDate })
+      .updateTask(id, {
+        name,
+        description,
+        assignedTo,
+        status,
+        endDate,
+        projectId,
+      })
       .then((updatedTask) => response.json(updatedTask))
       .catch((error) => CustomError.handleErrors(error, response));
   };

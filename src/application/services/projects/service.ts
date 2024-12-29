@@ -4,11 +4,17 @@ import { projectModel } from "../../../infraestructure/data/mongo-db/models/proj
 import { userModel } from "../../../infraestructure/data/mongo-db/models/user.model";
 import { Project } from "./interfaces";
 import { Pagination } from "../shared/interfaces";
+import { taskModel } from "../../../infraestructure/data/mongo-db/models/task.model";
+import mongoose from "mongoose";
 
 export class ProjectService {
   public getAllProjects = async ({ skip, limit }: Pagination) => {
     try {
-      const allProjects = await projectModel.find().limit(limit).skip(skip!);
+      const allProjects = await projectModel
+        .find()
+        .limit(limit)
+        .skip(skip!)
+        .populate("tasks", "_id name status");
       const totalDocuments = await projectModel.countDocuments();
 
       const currentPage = Math.ceil(skip! / limit + 1);
@@ -55,7 +61,8 @@ export class ProjectService {
 
   public createProject = async (projectData: Project) => {
     try {
-      const newProject = await projectModel.create(projectData);
+      const { tasks, ...rest } = projectData;
+      const newProject = await projectModel.create(rest);
 
       return { msg: "Project created", newProject };
     } catch (error) {
@@ -63,10 +70,7 @@ export class ProjectService {
     }
   };
 
-  public updateProject = async (
-    id: string,
-    { name, tasks, users }: Project
-  ) => {
+  public updateProject = async (id: string, { name, users }: Project) => {
     try {
       await this.getProjectById(id);
 
@@ -74,7 +78,6 @@ export class ProjectService {
         id,
         {
           name: name && name,
-          tasks: tasks && tasks, //Array.from(new Set(tasks)) En caso de querer evitar duplicados desde el input (no me parece necesario ya que lo maneja un programador)
           users: users && users, //Array.from(new Set(users))
         },
         { new: true }
@@ -87,13 +90,33 @@ export class ProjectService {
   };
 
   public deleteProjectById = async (id: string) => {
+    const session = await mongoose.startSession();
     try {
-      await this.getProjectById(id);
+      session.startTransaction();
 
-      await projectModel.findByIdAndDelete(id);
+      const findProject = await this.getProjectById(id);
 
+      if (!findProject) {
+        throw CustomError.notFound(`Project with id ${id} not found`);
+      }
+
+      if (findProject.project.tasks?.length) {
+        const deleteTasksInProject = findProject.project.tasks.map(
+          async (task) =>
+            await taskModel.findByIdAndDelete(task._id, { session })
+        );
+
+        await Promise.all(deleteTasksInProject);
+      }
+
+      await projectModel.findByIdAndDelete(id, { session });
+
+      await session.commitTransaction();
+      session.endSession();
       return { msg: `Project with id ${id} was deleted` };
     } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
       throw error;
     }
   };

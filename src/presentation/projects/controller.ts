@@ -24,20 +24,20 @@ export class ProjectController {
       .catch((error) => CustomError.handleErrors(error, response));
   };
   public createProject = async (request: Request, response: Response) => {
-    const { name, users, tasks } = request.body;
+    const { name, users } = request.body;
 
     this.projectService
-      .createProject({ name, users, tasks })
+      .createProject({ name, users })
       .then((project) => response.status(201).json(project))
       .catch((error) => CustomError.handleErrors(error, response));
   };
 
   public updateProject = async (request: Request, response: Response) => {
     const { id } = request.params;
-    const { name, users, tasks } = request.body;
+    const { name, users } = request.body;
 
     this.projectService
-      .updateProject(id, { name, users, tasks })
+      .updateProject(id, { name, users })
       .then((updated) => response.json(updated))
       .catch((error) => CustomError.handleErrors(error, response));
   };

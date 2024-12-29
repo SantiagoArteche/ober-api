@@ -3,6 +3,7 @@ import { handleValidation } from "./shared.validations";
 import { CustomError } from "../errors/custom-errors";
 import mongoose from "mongoose";
 import { userModel } from "../../infraestructure/data/mongo-db/models/user.model";
+import { projectModel } from "../../infraestructure/data/mongo-db/models/project.model";
 
 const assignedToValidation = [
   body("assignedTo")
@@ -92,6 +93,12 @@ export const createTaskValidation = [
     .withMessage("description must be a string")
     .optional(),
 
+  body("projectId")
+    .notEmpty()
+    .withMessage("projectId is required")
+    .isMongoId()
+    .withMessage("projectId must be in Mongo ID format"),
+
   body("endDate")
     .notEmpty()
     .withMessage("endDate is required")
@@ -125,11 +132,13 @@ export const updateTaskValidation = [
     .withMessage("name must be between 3 and 40 characters long")
     .optional(),
 
-  body("endDate")
+  body("endDate").isDate().withMessage("endDate must be a date").optional(),
+
+  body("projectId")
     .notEmpty()
-    .withMessage("endDate is required")
-    .isDate()
-    .withMessage("endDate must be a date")
+    .withMessage("projectId is required")
+    .isMongoId()
+    .withMessage("projectId must be in Mongo ID format")
     .optional(),
 
   body("description")

@@ -25,26 +25,6 @@ const taskAndUserValidation = [
       return true;
     })
     .optional(),
-
-  body("tasks")
-    .isArray()
-    .withMessage("Tasks must be an array with the id of the tasks")
-    .custom(async (tasks) => {
-      for (const taskId of tasks) {
-        if (!mongoose.Types.ObjectId.isValid(taskId)) {
-          throw CustomError.badRequest(
-            `Task ID ${taskId} is not a valid ObjectId`
-          );
-        }
-
-        const findTask = await taskModel.findById(taskId);
-        if (!findTask) {
-          throw CustomError.notFound(`Task with id ${taskId} not found`);
-        }
-      }
-      return true;
-    })
-    .optional(),
 ];
 
 export const getAllProjectsValidation = [

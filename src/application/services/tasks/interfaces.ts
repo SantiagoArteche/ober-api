@@ -11,6 +11,7 @@ export interface Task {
   status: taskStatus;
   startDate?: Date;
   endDate: Date;
+  projectId: string;
 }
 
 export interface TaskParams {
@@ -18,5 +19,3 @@ export interface TaskParams {
   endDate?: Date;
   userAssigned?: string;
 }
-
-

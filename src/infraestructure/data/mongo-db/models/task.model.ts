@@ -15,6 +15,11 @@ const taskSchema = new Schema(
       ref: "User",
       default: [],
     },
+    projectId: {
+      type: Schema.Types.ObjectId,
+      ref: "Project",
+      required: [true, "The id of the project is required"],
+    },
     status: {
       type: String,
       enum: ["pending", "in progress", "completed"],
