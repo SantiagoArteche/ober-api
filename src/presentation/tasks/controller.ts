@@ -6,8 +6,23 @@ export class TasksController {
   constructor(public readonly taskService: TaskService) {}
 
   public getAllTasks = async (request: Request, response: Response) => {
+    const {
+      status,
+      endDate,
+      userAssigned,
+      skip = 0,
+      limit = 10,
+    } = request.query;
+
     this.taskService
-      .getAllTasks()
+      .getAllTasks(
+        {
+          status: status as string,
+          endDate: endDate as unknown as Date,
+          userAssigned: userAssigned as string,
+        },
+        { skip: +skip, limit: +limit }
+      )
       .then((tasks) => response.json(tasks))
       .catch((error) => CustomError.handleErrors(error, response));
   };
@@ -20,21 +35,42 @@ export class TasksController {
       .catch((error) => CustomError.handleErrors(error, response));
   };
 
-  public createTask = async (request: Request, response: Response) => {
-    const { title, description, assignedTo, status } = request.body;
+  public getTasksByName = async (request: Request, response: Response) => {
+    const { name } = request.params;
 
     this.taskService
-      .createTask({ title, description, assignedTo, status })
+      .getTasksByName(name)
+      .then((tasks) => response.json(tasks))
+      .catch((error) => CustomError.handleErrors(error, response));
+  };
+
+  public getTasksByDescription = async (
+    request: Request,
+    response: Response
+  ) => {
+    const { description } = request.params;
+
+    this.taskService
+      .getTasksByDescription(description)
+      .then((tasks) => response.json(tasks))
+      .catch((error) => CustomError.handleErrors(error, response));
+  };
+
+  public createTask = async (request: Request, response: Response) => {
+    const { name, description, assignedTo, status, endDate } = request.body;
+
+    this.taskService
+      .createTask({ name, description, assignedTo, status, endDate })
       .then((newTask) => response.status(201).json(newTask))
       .catch((error) => CustomError.handleErrors(error, response));
   };
 
   public updateTask = async (request: Request, response: Response) => {
     const { id } = request.params;
-    const { title, description, assignedTo, status } = request.body;
+    const { name, description, assignedTo, status, endDate } = request.body;
 
     this.taskService
-      .updateTask(id, { title, description, assignedTo, status })
+      .updateTask(id, { name, description, assignedTo, status, endDate })
       .then((updatedTask) => response.json(updatedTask))
       .catch((error) => CustomError.handleErrors(error, response));
   };
@@ -42,6 +78,7 @@ export class TasksController {
   public changeTaskState = async (request: Request, response: Response) => {
     const { id } = request.params;
     const { status } = request.body;
+
     this.taskService
       .changeTaskState(id, status)
       .then((updateTaskStatus) => response.json(updateTaskStatus))

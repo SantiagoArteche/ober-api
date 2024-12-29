@@ -2,13 +2,18 @@ import { Router } from "express";
 import { TasksController } from "./controller";
 import { TaskService } from "../../application/services/tasks/service";
 import { idValidation } from "../../domain/validations/shared.validations";
-import { changeTaskStateValidation } from "../../domain/validations/task.validation";
+import {
+  changeTaskStateValidation,
+  getTasksByDescriptionValidation,
+  getTasksByNameValidation,
+} from "../../domain/validations/task.validation";
 import {
   assignTaskToUserValidation,
   createTaskValidation,
   updateTaskValidation,
 } from "../../domain/validations/task.validation";
 import { AuthMiddleware } from "../../domain/middlewares/auth.middleware";
+import { getAllTasksValidation } from "../../domain/validations/task.validation";
 
 export class TaskRoutes {
   static routes = () => {
@@ -19,9 +24,21 @@ export class TaskRoutes {
 
     router.use(AuthMiddleware.validateJWT as any);
 
-    router.get("/", taskController.getAllTasks);
+    router.get("/", getAllTasksValidation, taskController.getAllTasks);
     router.get("/:id", idValidation, taskController.getTaskById);
+    router.get(
+      "/name/:name",
+      getTasksByNameValidation,
+      taskController.getTasksByName
+    );
+    router.get(
+      "/description/:description",
+      getTasksByDescriptionValidation,
+      taskController.getTasksByDescription
+    );
+
     router.post("/", createTaskValidation, taskController.createTask);
+
     router.put("/:id", updateTaskValidation, taskController.updateTask);
     router.put(
       "/state/:id",
@@ -33,6 +50,7 @@ export class TaskRoutes {
       assignTaskToUserValidation,
       taskController.assignTaskToUser
     );
+
     router.delete("/:id", idValidation, taskController.deleteTask);
 
     return router;

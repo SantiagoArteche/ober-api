@@ -2,7 +2,7 @@ import { model, Schema } from "mongoose";
 
 const taskSchema = new Schema(
   {
-    title: {
+    name: {
       type: String,
       required: true,
     },
@@ -19,6 +19,15 @@ const taskSchema = new Schema(
       type: String,
       enum: ["pending", "in progress", "completed"],
       default: "pending",
+    },
+    startDate: {
+      type: Date,
+      default: new Date(),
+    },
+    endDate: {
+      type: Date,
+      required: [true, "endDate is required"],
+      default: new Date(),
     },
   },
   {

@@ -8,8 +8,10 @@ export class ProjectController {
   constructor(public readonly projectService: ProjectService) {}
 
   public getAllProjects = async (request: Request, response: Response) => {
+    const { skip = 0, limit = 10 } = request.query;
+
     this.projectService
-      .getAllProjects()
+      .getAllProjects({ skip: +skip, limit: +limit })
       .then((projects) => response.json(projects))
       .catch((error) => CustomError.handleErrors(error, response));
   };

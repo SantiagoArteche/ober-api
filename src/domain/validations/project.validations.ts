@@ -1,4 +1,4 @@
-import { body, param } from "express-validator";
+import { body, param, query } from "express-validator";
 import { handleValidation } from "./shared.validations";
 import mongoose from "mongoose";
 import { userModel } from "../../infraestructure/data/mongo-db/models/user.model";
@@ -45,6 +45,33 @@ const taskAndUserValidation = [
       return true;
     })
     .optional(),
+];
+
+export const getAllProjectsValidation = [
+  query("skip")
+    .isNumeric()
+    .withMessage("skip must be a number")
+    .optional()
+    .custom((skip) => {
+      if (skip < 0) {
+        throw CustomError.badRequest(`Skip must be greater or equal than 0`);
+      }
+
+      return true;
+    }),
+
+  query("limit")
+    .isNumeric()
+    .withMessage("limit must be a number")
+    .optional()
+    .custom((limit) => {
+      if (limit < 0) {
+        throw CustomError.badRequest(`Limit must be greater or equal than 0`);
+      }
+
+      return true;
+    }),
+  handleValidation,
 ];
 
 export const createProjectValidation = [

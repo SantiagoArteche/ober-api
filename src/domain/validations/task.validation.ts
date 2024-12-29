@@ -1,4 +1,4 @@
-import { body, param } from "express-validator";
+import { body, param, query } from "express-validator";
 import { handleValidation } from "./shared.validations";
 import { CustomError } from "../errors/custom-errors";
 import mongoose from "mongoose";
@@ -26,19 +26,77 @@ const assignedToValidation = [
     .optional(),
 ];
 
-export const createTaskValidation = [
-  body("title")
-    .notEmpty()
-    .withMessage("Title is required")
+export const getAllTasksValidation = [
+  query("userAssigned")
+    .isMongoId()
+    .withMessage("userAssigned must be in Mongo ID format (User ID)")
+    .optional(),
+
+  query("endDate")
+    .isDate()
+    .withMessage("endDate must be in Date format")
+    .optional(),
+
+  query("skip")
+    .isNumeric()
+    .withMessage("skip must be a number")
+    .optional()
+    .custom((skip) => {
+      if (skip < 0) {
+        throw CustomError.badRequest(`Skip must be greater or equal than 0`);
+      }
+
+      return true;
+    }),
+
+  query("limit")
+    .isNumeric()
+    .withMessage("limit must be a number")
+    .optional()
+    .custom((limit) => {
+      if (limit < 0) {
+        throw CustomError.badRequest(`Limit must be greater or equal than 0`);
+      }
+
+      return true;
+    }),
+
+  query("status")
     .isString()
-    .withMessage("Title must be a string")
+    .withMessage("status must be a string")
+    .custom((task) => {
+      const validTasks = ["pending", "in progress", "completed"];
+      if (!validTasks.includes(task)) {
+        throw CustomError.badRequest(
+          `Invalid status, valid ones are: [${validTasks}]`
+        );
+      }
+
+      return true;
+    })
+    .optional(),
+  handleValidation,
+];
+
+export const createTaskValidation = [
+  body("name")
+    .notEmpty()
+    .withMessage("name is required")
+    .isString()
+    .withMessage("name must be a string")
     .isLength({ min: 3, max: 40 })
-    .withMessage("Title must be between 3 and 40 characters long"),
+    .withMessage("name must be between 3 and 40 characters long"),
 
   body("description")
     .isString()
-    .withMessage("Title must be a string")
+    .withMessage("description must be a string")
     .optional(),
+
+  body("endDate")
+    .notEmpty()
+    .withMessage("endDate is required")
+    .isDate()
+    .withMessage("endDate must be a date"),
 
   body("status")
     .isString()
@@ -54,21 +112,29 @@ export const createTaskValidation = [
       return true;
     })
     .optional(),
+
   ...assignedToValidation,
   handleValidation,
 ];
 
 export const updateTaskValidation = [
-  body("title")
+  body("name")
     .isString()
-    .withMessage("Title must be a string")
+    .withMessage("name must be a string")
     .isLength({ min: 3, max: 40 })
-    .withMessage("Title must be between 3 and 40 characters long")
+    .withMessage("name must be between 3 and 40 characters long")
+    .optional(),
+
+  body("endDate")
+    .notEmpty()
+    .withMessage("endDate is required")
+    .isDate()
+    .withMessage("endDate must be a date")
     .optional(),
 
   body("description")
     .isString()
-    .withMessage("Title must be a string")
+    .withMessage("name must be a string")
     .optional(),
 
   body("status")
@@ -128,6 +194,26 @@ export const assignTaskToUserValidation = [
     .withMessage("taskId is required")
     .isMongoId()
     .withMessage("taskId must be in Mongo ID format"),
+
+  handleValidation,
+];
+
+export const getTasksByNameValidation = [
+  param("name")
+    .notEmpty()
+    .withMessage("name is required")
+    .isString()
+    .withMessage("name must be a string"),
+
+  handleValidation,
+];
+
+export const getTasksByDescriptionValidation = [
+  param("description")
+    .notEmpty()
+    .withMessage("description is required")
+    .isString()
+    .withMessage("description must be a string"),
 
   handleValidation,
 ];

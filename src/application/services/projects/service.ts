@@ -3,13 +3,37 @@ import { CustomError } from "../../../domain/errors/custom-errors";
 import { projectModel } from "../../../infraestructure/data/mongo-db/models/project.model";
 import { userModel } from "../../../infraestructure/data/mongo-db/models/user.model";
 import { Project } from "./interfaces";
+import { Pagination } from "../shared/interfaces";
 
 export class ProjectService {
-  public getAllProjects = async () => {
+  public getAllProjects = async ({ skip, limit }: Pagination) => {
     try {
-      const allProjects = await projectModel.find();
+      const allProjects = await projectModel.find().limit(limit).skip(skip!);
+      const totalDocuments = await projectModel.countDocuments();
 
-      return { msg: "OK", projects: allProjects };
+      const currentPage = Math.ceil(skip! / limit + 1);
+      const totalPages = Math.ceil(totalDocuments / limit);
+      return {
+        msg: "OK",
+        projects: allProjects,
+        totalDocuments,
+        totalPages,
+        limit,
+        skip,
+        page: currentPage,
+        prev:
+          currentPage > 1
+            ? `http://localhost:8000/api/projects?limit=${limit}&skip=${
+                (currentPage - 2) * limit
+              }`
+            : null,
+        next:
+          currentPage < totalPages
+            ? `http://localhost:8000/api/projects?limit=${limit}&skip=${
+                currentPage * limit
+              }`
+            : null,
+      };
     } catch (error) {
       throw error;
     }

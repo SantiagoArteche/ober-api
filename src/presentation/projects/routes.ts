@@ -5,6 +5,7 @@ import {
   createProjectValidation,
   updateProjectValidation,
   assignUserToProjectValidation,
+  getAllProjectsValidation,
 } from "../../domain/validations/project.validations";
 import { ProjectService } from "../../application/services/projects/service";
 import { AuthMiddleware } from "../../domain/middlewares/auth.middleware";
@@ -19,7 +20,7 @@ export class ProjectRoutes {
 
     router.use(AuthMiddleware.validateJWT as any);
 
-    router.get("/", projectController.getAllProjects);
+    router.get("/", getAllProjectsValidation, projectController.getAllProjects);
     router.get("/:id", idValidation, projectController.getProjectById);
     router.post("/", createProjectValidation, projectController.createProject);
 
