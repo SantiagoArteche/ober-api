@@ -98,5 +98,3 @@ export class Logger {
     this.logger.log("debug", `${message} - ${new Date()}`);
   }
 }
-
-

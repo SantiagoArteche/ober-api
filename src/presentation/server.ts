@@ -6,10 +6,11 @@ import compression from "compression";
 import rateLimit from "express-rate-limit";
 
 export class AppServer {
-  private app = express();
+  public app = express();
   private PORT = process.env.PORT ?? 8000;
+  private server: any;
 
-  public start = () => {
+  public start = async () => {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(cors());
@@ -28,8 +29,16 @@ export class AppServer {
 
     this.app.use(AppRouter.routes());
 
-    this.app.listen(this.PORT, () => {
+    this.server = this.app.listen(this.PORT, () => {
       console.log(`Server running on PORT: ${this.PORT}`);
+    });
+  };
+
+  public close = async () => {
+    return new Promise<void>((resolve) => {
+      if (this.server) {
+        return this.server.close(resolve);
+      }
     });
   };
 }

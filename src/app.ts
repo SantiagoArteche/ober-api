@@ -3,7 +3,7 @@ import { AppServer } from "./presentation/server";
 
 const main = async () => {
   const server = new AppServer();
-  server.start();
+  await server.start();
   await MongoDB.init();
 };
 
