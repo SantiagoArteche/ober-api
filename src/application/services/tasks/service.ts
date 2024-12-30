@@ -6,7 +6,7 @@ import { Task, TaskParams } from "./interfaces";
 import { ObjectId } from "mongodb";
 import { Pagination } from "../shared/interfaces";
 import mongoose from "mongoose";
-import Logger from "../../../infraestructure/config/logger";
+import { Logger } from "../../../infraestructure/config/logger";
 
 export class TaskService {
   constructor(private readonly logger: Logger = new Logger()) {}
@@ -16,7 +16,6 @@ export class TaskService {
     { skip, limit }: Pagination
   ) => {
     try {
-    
       const filters: any = {};
 
       if (status) {
@@ -53,6 +52,7 @@ export class TaskService {
         msg: "OK",
         tasks: allTasks,
         totalDocuments,
+        totalPages,
         limit,
         skip,
         page: currentPage,
@@ -446,7 +446,7 @@ export class TaskService {
     }
   };
 
-  private isUserInAnyProject = async (
+  public isUserInAnyProject = async (
     userId: ObjectId,
     projectId: ObjectId
   ): Promise<boolean> => {

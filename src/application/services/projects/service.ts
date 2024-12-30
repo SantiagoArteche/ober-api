@@ -6,7 +6,7 @@ import { Project } from "./interfaces";
 import { Pagination } from "../shared/interfaces";
 import { taskModel } from "../../../infraestructure/data/mongo-db/models/task.model";
 import mongoose from "mongoose";
-import Logger from "../../../infraestructure/config/logger";
+import { Logger } from "../../../infraestructure/config/logger";
 
 export class ProjectService {
   constructor(private readonly logger: Logger = new Logger()) {}

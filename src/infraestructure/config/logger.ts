@@ -2,7 +2,7 @@ import winston from "winston";
 
 type LogLevel = "fatal" | "error" | "warning" | "info" | "debug";
 
-class Logger {
+export class Logger {
   private mode: string = process.env.NODE_ENV!;
   private customLevels: {
     levels: Record<LogLevel, number>;
@@ -99,4 +99,4 @@ class Logger {
   }
 }
 
-export default Logger;
+

@@ -4,7 +4,7 @@ import { Hash } from "../../../infraestructure/config/bcrypt";
 import { JWT } from "../../../infraestructure/config/jwt";
 import { userModel } from "../../../infraestructure/data/mongo-db/models/user.model";
 import { User, Credentials } from "./interfaces";
-import Logger from "../../../infraestructure/config/logger";
+import { Logger } from "../../../infraestructure/config/logger";
 
 export class AuthService {
   constructor(private readonly logger: Logger = new Logger()) {}

@@ -5,8 +5,9 @@ enum taskStatus {
 }
 
 export interface Task {
+  _id?: string;
   name: string;
-  description: string;
+  description?: string;
   assignedTo: string[];
   status: taskStatus;
   startDate?: Date;
