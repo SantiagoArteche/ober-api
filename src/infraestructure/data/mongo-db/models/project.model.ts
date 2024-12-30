@@ -21,5 +21,7 @@ const projectSchema = new Schema(
     versionKey: false,
   }
 );
-
+// projectSchema.index({ _id: 1 }); // mongodb lo implementa por defecto
+projectSchema.index({ name: 1 });
+//Estos índices sirven para desarrollo, en producción habría que implementarlo manualmente mediante el administrador de bases de datos
 export const projectModel = model("Project", projectSchema);

@@ -39,5 +39,14 @@ const taskSchema = new Schema(
     versionKey: false,
   }
 );
+// taskSchema.index({ _id: 1 }); // mongodb lo implementa por defecto
 
+taskSchema.index({ assignedTo: 1 });
+taskSchema.index({ status: 1 });
+taskSchema.index({ endDate: 1 });
+taskSchema.index({ assignedTo: 1, status: 1 });
+taskSchema.index({ name: 1 });
+taskSchema.index({ projectId: 1 });
+
+//Estos índices sirven para desarrollo, en producción habría que implementarlo manualmente mediante el administrador de bases de datos
 export const taskModel = model("Task", taskSchema);
