@@ -6,11 +6,11 @@
   "scripts": {
     "copy-yml": "copyfiles -u 1 src/presentation/docs/*.yaml dist/",
     "test": "cross-env NODE_ENV=development jest",
-    "test:watch": "cross-env NODE_ENV=development jest --watch",
+    "test:watch": "cross-env NODE_ENV=development jest --watchAll",
     "test:coverage": "cross-env NODE_ENV=development jest --coverage",
     "dev": "tsnd --respawn --clear src/app.ts",
     "build": "rimraf ./dist && tsc && npm run copy-yml",
-    "start": "npm run build && node dist/app.js"
+    "start": "npm run build && cross-env NODE_ENV=production node dist/app.js"
   },
   "keywords": [],
   "author": "",

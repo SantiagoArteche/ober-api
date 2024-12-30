@@ -180,7 +180,10 @@ export class ProjectService {
         `User with id: ${userId} successfully assigned to project with id: ${projectId}`
       );
 
-      return { msg: "OK", projectUpdated: updateProject };
+      return {
+        msg: `User with id: ${userId} successfully assigned to project with id: ${projectId}`,
+        projectUpdated: updateProject,
+      };
     } catch (error) {
       this.logger.error(
         `Error assigning user with id: ${userId} to project with id: ${projectId}, ${error}`
