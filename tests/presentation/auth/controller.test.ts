@@ -8,10 +8,10 @@ describe("AuthController", () => {
   let authService: AuthService;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
+  const customErrorSpy = jest.spyOn(CustomError, "handleErrors");
 
   beforeEach(() => {
     authService = {
-      getUsers: jest.fn(),
       createUser: jest.fn(),
       deleteUser: jest.fn(),
       login: jest.fn(),
@@ -23,51 +23,22 @@ describe("AuthController", () => {
     mockRequest = {};
     mockResponse = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-      cookie: jest.fn(),
+      json: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
       clearCookie: jest.fn(),
+      cookie: jest.fn(),
     };
-  });
-
-  describe("getUsers", () => {
-    it("should return users when service resolves", async () => {
-      const users = [{ id: "1", name: "John Doe" }];
-      (authService.getUsers as jest.Mock).mockResolvedValue(users);
-
-      await authController.getUsers(
-        mockRequest as Request,
-        mockResponse as Response
-      );
-
-      expect(authService.getUsers).toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith(users);
-    });
-
-    it("should handle errors when service rejects", async () => {
-      const error = new CustomError("Some error", 500);
-      (authService.getUsers as jest.Mock).mockRejectedValue(error);
-
-      jest.spyOn(CustomError, "handleErrors").mockImplementation(jest.fn());
-
-      await authController.getUsers(
-        mockRequest as Request,
-        mockResponse as Response
-      );
-
-      expect(CustomError.handleErrors).toHaveBeenCalledWith(
-        error,
-        mockResponse
-      );
-    });
   });
 
   describe("createUser", () => {
     it("should create a user when service resolves", async () => {
-      const newUser = { id: "1", name: "Jane Doe" };
+      const newUser = {
+        id: "676ff105faab8854b63521e5",
+        name: "Santiago Arteche",
+      };
       mockRequest.body = {
-        name: "Jane",
-        email: "jane@example.com",
+        name: "Santiago Arteche",
+        email: "santiarteche@example.com",
         password: "password123",
       };
 
@@ -79,8 +50,8 @@ describe("AuthController", () => {
       );
 
       expect(authService.createUser).toHaveBeenCalledWith({
-        name: "Jane",
-        email: "jane@example.com",
+        name: "Santiago Arteche",
+        email: "santiarteche@example.com",
         password: "password123",
       });
       expect(mockResponse.status).toHaveBeenCalledWith(201);
@@ -88,26 +59,37 @@ describe("AuthController", () => {
     });
 
     it("should handle errors when service rejects", async () => {
-      const error = new CustomError("Failed to create user", 400);
-      (authService.createUser as jest.Mock).mockRejectedValue(error);
+      mockRequest.body = {
+        name: "Santiago",
+        email: "santiarteche@example.com",
+        password: "password123",
+      };
 
-      jest.spyOn(CustomError, "handleErrors").mockImplementation(jest.fn());
+      const mockError = CustomError.badRequest("Failed to create user");
+
+      (authService.createUser as jest.Mock).mockRejectedValue(mockError);
 
       await authController.createUser(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(CustomError.handleErrors).toHaveBeenCalledWith(
-        error,
+      expect(await customErrorSpy).toHaveBeenCalledTimes(1);
+      expect(await customErrorSpy).toHaveBeenCalledWith(
+        mockError,
         mockResponse
       );
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.send).toHaveBeenCalledWith({
+        msg: "ERROR",
+        error: "Failed to create user",
+      });
     });
   });
 
   describe("deleteUser", () => {
     it("should delete a user when service resolves", async () => {
-      mockRequest.params = { id: "1" };
+      mockRequest.params = { id: "676ff105faab8854b63521e5" };
       const wasDeleted = { success: true };
 
       (authService.deleteUser as jest.Mock).mockResolvedValue(wasDeleted);
@@ -117,25 +99,33 @@ describe("AuthController", () => {
         mockResponse as Response
       );
 
-      expect(authService.deleteUser).toHaveBeenCalledWith("1");
+      expect(authService.deleteUser).toHaveBeenCalledWith(
+        "676ff105faab8854b63521e5"
+      );
       expect(mockResponse.json).toHaveBeenCalledWith(wasDeleted);
     });
 
     it("should handle errors when service rejects", async () => {
-      const error = new CustomError("Failed to delete user", 404);
-      (authService.deleteUser as jest.Mock).mockRejectedValue(error);
+      mockRequest.params = { id: "676ff105faab8854b63521e5" };
 
-      jest.spyOn(CustomError, "handleErrors").mockImplementation(jest.fn());
+      const mockError = new CustomError("Failed to delete user", 404);
+      (authService.deleteUser as jest.Mock).mockRejectedValue(mockError);
 
       await authController.deleteUser(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(CustomError.handleErrors).toHaveBeenCalledWith(
-        error,
+      expect(await customErrorSpy).toHaveBeenCalledTimes(1);
+      expect(await customErrorSpy).toHaveBeenCalledWith(
+        mockError,
         mockResponse
       );
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
+      expect(mockResponse.send).toHaveBeenCalledWith({
+        msg: "ERROR",
+        error: "Failed to delete user",
+      });
     });
   });
 
@@ -169,20 +159,30 @@ describe("AuthController", () => {
     });
 
     it("should handle errors when service rejects", async () => {
-      const error = new CustomError("Login failed", 401);
-      (authService.login as jest.Mock).mockRejectedValue(error);
+      mockRequest.body = {
+        email: "santiarteche@example.com",
+        password: "password123",
+      };
 
-      jest.spyOn(CustomError, "handleErrors").mockImplementation(jest.fn());
+      const mockError = new CustomError("Wrong credentials", 401);
+
+      (authService.login as jest.Mock).mockRejectedValue(mockError);
 
       await authController.login(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(CustomError.handleErrors).toHaveBeenCalledWith(
-        error,
+      expect(await customErrorSpy).toHaveBeenCalledTimes(1);
+      expect(await customErrorSpy).toHaveBeenCalledWith(
+        mockError,
         mockResponse
       );
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
+      expect(mockResponse.send).toHaveBeenCalledWith({
+        msg: "ERROR",
+        error: "Wrong credentials",
+      });
     });
   });
 
@@ -204,20 +204,25 @@ describe("AuthController", () => {
     });
 
     it("should handle errors when service rejects", async () => {
-      const error = new CustomError("Logout failed", 400);
-      (authService.logout as jest.Mock).mockRejectedValue(error);
-
-      jest.spyOn(CustomError, "handleErrors").mockImplementation(jest.fn());
+      mockRequest.params = { token: "wrong token" };
+      const mockError = new CustomError("Logout failed", 400);
+      (authService.logout as jest.Mock).mockRejectedValue(mockError);
 
       await authController.logout(
         mockRequest as Request,
         mockResponse as Response
       );
 
-      expect(CustomError.handleErrors).toHaveBeenCalledWith(
-        error,
+      expect(await customErrorSpy).toHaveBeenCalledTimes(1);
+      expect(await customErrorSpy).toHaveBeenCalledWith(
+        mockError,
         mockResponse
       );
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.send).toHaveBeenCalledWith({
+        msg: "ERROR",
+        error: "Logout failed",
+      });
     });
   });
 });

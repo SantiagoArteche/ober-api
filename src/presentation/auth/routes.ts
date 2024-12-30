@@ -15,7 +15,7 @@ export class AuthRoutes {
     const authService = new AuthService();
 
     const authController = new AuthController(authService);
-    router.get("/users", authController.getUsers);
+    // router.get("/users", authController.getUsers);
 
     router.post("/login", loginValidations, authController.login);
 

@@ -9,15 +9,15 @@ import { Logger } from "../../../infraestructure/config/logger";
 export class AuthService {
   constructor(private readonly logger: Logger = new Logger()) {}
 
-  public getUsers = async () => {
-    try {
-      const users = await userModel.find().select("_id name email");
+  // public getUsers = async () => {
+  //   try {
+  //     const users = await userModel.find().select("_id name email");
 
-      return users;
-    } catch (error) {
-      throw error;
-    }
-  };
+  //     return users;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // };
 
   public createUser = async (userData: User) => {
     try {

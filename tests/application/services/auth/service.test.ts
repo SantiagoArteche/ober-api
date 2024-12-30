@@ -1,4 +1,5 @@
 import { AuthService } from "../../../../src/application/services/auth/service";
+import { CustomError } from "../../../../src/domain/errors/custom-errors";
 import { Hash } from "../../../../src/infraestructure/config/bcrypt";
 import { JWT } from "../../../../src/infraestructure/config/jwt";
 import { userModel } from "../../../../src/infraestructure/data/mongo-db/models/user.model";
@@ -48,7 +49,7 @@ describe("AuthService", () => {
         password: "password123",
       };
 
-      (userModel.findOne as jest.Mock).mockResolvedValue(null); 
+      (userModel.findOne as jest.Mock).mockResolvedValue(null);
       (userModel.create as jest.Mock).mockResolvedValue({
         _id: "123",
         name: userData.name,
@@ -74,10 +75,59 @@ describe("AuthService", () => {
       });
     });
 
+    describe("deleteUser", () => {
+      it("should delete a user if they exist", async () => {
+        const mockUserId = "12345";
+        const mockUser = { _id: mockUserId, name: "Santiago Arteche" };
+
+        (userModel.findById as jest.Mock).mockResolvedValue(mockUser);
+        (userModel.findByIdAndDelete as jest.Mock).mockResolvedValue(null);
+
+        const result = await authService.deleteUser(mockUserId);
+
+        expect(userModel.findById).toHaveBeenCalledWith(mockUserId);
+        expect(userModel.findByIdAndDelete).toHaveBeenCalledWith(mockUserId);
+        expect(result).toEqual({
+          msg: `User with id ${mockUserId} was deleted`,
+        });
+      });
+
+      it("should throw a not found error if the user does not exist", async () => {
+        const mockUserId = "12345";
+
+        (userModel.findById as jest.Mock).mockResolvedValue(null);
+
+        await expect(authService.deleteUser(mockUserId)).rejects.toThrow(
+          CustomError.notFound(`User with id ${mockUserId} not found`)
+        );
+
+        expect(userModel.findById).toHaveBeenCalledWith(mockUserId);
+        expect(userModel.findByIdAndDelete).not.toHaveBeenCalled();
+      });
+
+      it("should throw an error if deletion fails", async () => {
+        const mockUserId = "12345";
+        const mockUser = { _id: mockUserId, name: "Santiago Arteche" };
+        const deletionError = new Error("Deletion failed");
+
+        (userModel.findById as jest.Mock).mockResolvedValue(mockUser);
+        (userModel.findByIdAndDelete as jest.Mock).mockRejectedValue(
+          deletionError
+        );
+
+        await expect(authService.deleteUser(mockUserId)).rejects.toThrow(
+          deletionError
+        );
+
+        expect(userModel.findById).toHaveBeenCalledWith(mockUserId);
+        expect(userModel.findByIdAndDelete).toHaveBeenCalledWith(mockUserId);
+      });
+    });
+
     it("should throw an error if email already exists", async () => {
       const userData = {
-        name: "John Doe",
-        email: "johndoe@example.com",
+        name: "Santiago Arteche",
+        email: "santiarteche@hotmail.com",
         password: "password123",
       };
 
@@ -92,7 +142,7 @@ describe("AuthService", () => {
   describe("login", () => {
     it("should login successfully and return a token", async () => {
       const credentials = {
-        email: "johndoe@example.com",
+        email: "santiarteche@hotmail.com",
         password: "password123",
       };
 
@@ -103,7 +153,7 @@ describe("AuthService", () => {
       };
 
       (userModel.findOne as jest.Mock).mockResolvedValue(mockUser);
-      (Hash.unHashPassword as jest.Mock).mockReturnValue(true); 
+      (Hash.unHashPassword as jest.Mock).mockReturnValue(true);
       (JWT.generate as jest.Mock).mockResolvedValue("jwtToken");
 
       const result = await authService.login(credentials);
@@ -128,7 +178,7 @@ describe("AuthService", () => {
 
     it("should throw an error for wrong credentials when password does not match", async () => {
       const credentials = {
-        email: "johndoe@example.com",
+        email: "santiarteche@hotmail.com",
         password: "wrongPassword",
       };
 
@@ -139,7 +189,7 @@ describe("AuthService", () => {
       };
 
       (userModel.findOne as jest.Mock).mockResolvedValue(mockUser);
-      (Hash.unHashPassword as jest.Mock).mockReturnValue(false); 
+      (Hash.unHashPassword as jest.Mock).mockReturnValue(false);
 
       await expect(authService.login(credentials)).rejects.toThrow(
         `Wrong credentials`
@@ -150,12 +200,12 @@ describe("AuthService", () => {
   describe("logout", () => {
     it("should logout successfully", async () => {
       const token = "validJwtToken";
-      const mockDecoded = { id: "123", email: "johndoe@example.com" };
+      const mockDecoded = { id: "123", email: "santiarteche@hotmail.com" };
 
       (JWT.decode as jest.Mock).mockReturnValue(mockDecoded);
       (userModel.findById as jest.Mock).mockResolvedValue({
         _id: "123",
-        email: "johndoe@example.com",
+        email: "santiarteche@hotmail.com",
       });
 
       const result = await authService.logout(token);
@@ -178,8 +228,8 @@ describe("AuthService", () => {
   describe("logout", () => {
     it("should logout successfully", async () => {
       const token = "validJwtToken";
-      const mockDecoded = { id: "123", email: "johndoe@example.com" };
-      const mockUser = { _id: "123", email: "johndoe@example.com" };
+      const mockDecoded = { id: "123", email: "santiarteche@hotmail.com" };
+      const mockUser = { _id: "123", email: "santiarteche@hotmail.com" };
 
       (JWT.decode as jest.Mock).mockResolvedValue(mockDecoded);
       (userModel.findById as jest.Mock).mockResolvedValue(mockUser);

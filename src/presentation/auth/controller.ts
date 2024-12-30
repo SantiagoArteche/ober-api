@@ -6,12 +6,12 @@ import { AuthService } from "../../application/services/auth/service";
 export class AuthController {
   constructor(public readonly authService: AuthService) {}
 
-  public getUsers = async (request: Request, response: Response) => {
-    this.authService
-      .getUsers()
-      .then((users) => response.status(200).json(users))
-      .catch((error) => CustomError.handleErrors(error, response));
-  }; //Implementado para que sea mas facil de ver informacion durante etapa de desarrollo.
+  // public getUsers = async (request: Request, response: Response) => {
+  //   this.authService
+  //     .getUsers()
+  //     .then((users) => response.status(200).json(users))
+  //     .catch((error) => CustomError.handleErrors(error, response));
+  // }; //Implementado para que sea mas facil de ver informacion durante etapa de desarrollo.
 
   public createUser = async (request: Request, response: Response) => {
     const { name, email, password } = request.body;
