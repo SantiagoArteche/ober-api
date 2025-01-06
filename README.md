@@ -68,7 +68,7 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ## Información Importante
 
-### Para acceder a las rutas, es necesario crear un usuario y realizar el login para generar un token de autenticación en su navegador. No olvide realizar este paso también dentro de la documentación de la API en /api-docs.
+### Para acceder a las rutas, es necesario crear un usuario y realizar el login para generar un token de autenticación el cual debe ser enviado mediante el header 'x-auth'. No olvide realizar este paso también dentro de la documentación de la API en /api-docs.
 
 ## Authentication Endpoints
 
