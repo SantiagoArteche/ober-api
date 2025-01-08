@@ -1,88 +1,90 @@
-# API de Gestión de Tareas
+# Task Management API
 
-Este proyecto es una API RESTful para la gestión de proyectos y tareas, desarrollada con Node.js, Express y MongoDB.
+This project is a RESTful API for project and task management, developed with Node.js, Express, and MongoDB.
 
-## Tabla de Contenidos
+## Table of Contents
 
-- [Configuración](#configuración)
-- [Documentación de la API](#documentación-de-la-api)
-- [Arquitectura y Decisiones de Diseño](#arquitectura-y-decisiones-de-diseño)
-- [Ejecutar Pruebas](#ejecutar-pruebas)
-- [Información Importante](#información-importante)
+- [Setup](#setup)
+- [API Documentation](#api-documentation)
+- [Architecture and Design Decisions](#architecture-and-design-decisions)
+- [Running Tests](#running-tests)
+- [Important Information](#important-information)
 
-## Configuración
+## Setup
 
-### Requisitos Previos
+### Prerequisites
 
-- Node.js (v14 o superior)
+- Node.js (v14 or higher)
 - MongoDB
 
-### Variables de Entorno
+### Environment Variables
 
-Crea un archivo .env en el directorio raíz con las siguientes variables:
+Create a .env file in the root directory with the following variables:
 
 ```
-MONGO_URI=mongodb+srv://ADMIN:P6Re8JjLo91IGrU1@cluster0.eyrdb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-MONGO_TEST_URI=mongodb+srv://santiarteche:T4Takngkm5B5U0X2@cluster0.6owrt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+MONGO_URI=mongodb+srv://<your-mongo-user>:<your-mongo-password>@<your-cluster>/?retryWrites=true&w=majority&appName=Cluster0
+MONGO_TEST_URI=mongodb+srv://<your-mongo-user>:<your-mongo-password>@<your-cluster>/?retryWrites=true&w=majority&appName=Cluster0
 MONGO_DBNAME=oberstaff
-PRIVATE_JWT=2f9a1a143243ec99f248e9a48fdf34ae0c0216f1f8f66c89ef4af6f15877fbe4
+PRIVATE_JWT=<jwt-secret>
 SALT=10
 NODE_ENV=development
-SECRET_COOKIE=cookie-san-123
+SECRET_COOKIE=<cookie-secret>
 PORT=8000
 ```
 
-### Instalación
+### Installation
 
-1. Clonar el repositorio
-
-   ```
-   git clone https://github.com/SantiagoArteche/ober-node.git
-   ```
-
-2. Moverse al repositorio
+1. Clone the repository
 
    ```
-   cd ober-node
+   git clone https://github.com/SantiagoArteche/ober-api.git
    ```
 
-3. Instalar las dependencias:
+2. Move to the repository
+
+   ```
+   cd ober-api
+   ```
+
+3. Install dependencies:
 
    ```
    npm install
    ```
 
-4. Configurar variables de entorno
+4. Configure environment variables
 
-5. Iniciar el servidor:
+5. Start the server:
 
    ```
    npm start
    ```
 
-El servidor se iniciará en el puerto especificado en el archivo .env (por defecto es el 8000).
+The server will start on the port specified in the .env file (default is 8000).
 
-# Documentación de la API
+# API Documentation
 
-Este documento proporciona información detallada sobre los endpoints disponibles, los parámetros de solicitud y las respuestas esperadas para la API.
+This document provides detailed information about the available endpoints, request parameters, and expected responses for the API.
 
-## Información Importante
+## Important Information
 
-### Para acceder a las rutas, es necesario crear un usuario y realizar el login para generar un token de autenticación el cual debe ser enviado mediante el header 'x-auth'. No olvide realizar este paso también dentro de la documentación de la API en /api-docs.
+### To access the routes, it is necessary to create a user and perform login to generate an authentication token which must be sent via the 'x-auth' header. Don't forget to do this step also within the API documentation at /api-docs.
 
 ## Authentication Endpoints
 
 ### **POST /api/auth/login**
 
-- **Descripción**: Inicio de sesión del usuario.
-- **Cuerpo de la Solicitud**:
+- **Description**: User login.
+- **Request Body**:
+
   ```json
   {
     "email": "string",
     "password": "string"
   }
   ```
-- **Respuesta**:
+
+- **Response**:
 
   ```json
   {
@@ -93,10 +95,11 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **GET /api/auth/logout/:token**
 
-- **Descripción**: Cierre de sesión del usuario.
-- **Parámetros**:
-  - `token`: Token de autenticación.
-- **Respuesta**:
+- **Description**: User logout.
+- **Parameters**:
+  - token: Authentication token.
+- **Response**:
+
   ```json
   {
     "msg": "Successful logout"
@@ -105,8 +108,9 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **POST /api/auth/new-user**
 
-- **Description**: Crear un nuevo usuario.
-- **Cuerpo de la Solicitud**:
+- **Description**: Create a new user.
+- **Request Body**:
+
   ```json
   {
     "name": "string",
@@ -114,7 +118,9 @@ Este documento proporciona información detallada sobre los endpoints disponible
     "password": "string"
   }
   ```
-- **Respuesta**:
+
+- **Response**:
+
   ```json
   {
     "msg": "User created",
@@ -128,10 +134,11 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **DELETE /api/auth/delete-user/:id**
 
-- **Description**: Borrar un usuario.
-- **Parámetros**:
-  - `id`: ID del usuario.
-- **Respuesta**:
+- **Description**: Delete a user.
+- **Parameters**:
+  - id: User ID.
+- **Response**:
+
   ```json
   {
     "msg": "User with id 6770009c69de7bafa52b6087 was deleted"
@@ -142,11 +149,12 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **GET /api/projects**
 
-- **Description**: Devuelve todos los projects.
-- **Query Parámetros**:
-  - `skip` (opcional): Número de registros a omitir.
-  - `limit` (opcional): Números de registros que quiero recuperar.
-- **Respuesta**:
+- **Description**: Returns all projects.
+- **Query Parameters**:
+  - skip (optional): Number of records to skip.
+  - limit (optional): Number of records to retrieve.
+- **Response**:
+
   ```json
   [
     {
@@ -165,10 +173,11 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **GET /api/projects/:id**
 
-- **Description**: Obtener un proyecto por su ID.
-- **Parámetros**:
-  - `id`: ID del proyecto.
-- **Respuesta**:
+- **Description**: Get a project by its ID.
+- **Parameters**:
+  - id: Project ID.
+- **Response**:
+
   ```json
   {
     "msg": "OK",
@@ -183,15 +192,18 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **POST /api/projects**
 
-- **Description**: Crear un nuevo proyecto.
-- **Cuerpo de la Solicitud**:
+- **Description**: Create a new project.
+- **Request Body**:
+
   ```json
   {
     "name": "string",
     "users": ["string"]
   }
   ```
-- **Respuesta**:
+
+- **Response**:
+
   ```json
   {
     "msg": "Project created",
@@ -206,17 +218,20 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **PUT /api/projects/:id**
 
-- **Description**: Actualizar un proyecto.
-- **Parámetros**:
-  - `id`: ID del proyecto.
-- **Cuerpo de la Solicitud**:
+- **Description**: Update a project.
+- **Parameters**:
+  - id: Project ID.
+- **Request Body**:
+
   ```json
   {
     "name": "string",
     "users": ["string"]
   }
   ```
-- **Respuesta**:
+
+- **Response**:
+
   ```json
   {
     "msg": "Project updated",
@@ -231,10 +246,11 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **DELETE /api/projects/:id**
 
-- **Description**: Borrar un proyecto.
-- **Parámetros**:
-  - `id`: ID del proyecto.
-- **Respuesta**:
+- **Description**: Delete a project.
+- **Parameters**:
+  - id: Project ID.
+- **Response**:
+
   ```json
   {
     "msg": "Project with id 6772f28cda565c261cf9b072 was deleted"
@@ -243,11 +259,12 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **PUT /api/projects/:projectId/users/:userId**
 
-- **Description**: Asignar un usuario a un proyecto.
-- **Parámetros**:
-  - `projectId`: ID del proyecto.
-  - `userId`: ID del usuario.
-- **Respuesta**:
+- **Description**: Assign a user to a project.
+- **Parameters**:
+  - projectId: Project ID.
+  - userId: User ID.
+- **Response**:
+
   ```json
   {
     "msg": "User with id: 677002b4dfecb23242e44222 successfully assigned to project with id: 6770155f8c4daac8074336d1",
@@ -268,14 +285,15 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **GET /api/tasks**
 
-- **Description**: Recuperar todas las tareas.
-- **Query Parámetros**:
-  - `status` (opcional): Filtrar tareas por estado.
-  - `endDate` (opcional): Filtrar tareas por fecha límite.
-  - `userAssigned` (opcional): Filtrar tareas por usuario asignado.
-  - `skip` (opcional): Número de registros a omitir.
-  - `limit` (opcional): Número de registros a devolver.
-- **Respuesta**:
+- **Description**: Retrieve all tasks.
+- **Query Parameters**:
+  - status (optional): Filter tasks by status.
+  - endDate (optional): Filter tasks by end date.
+  - userAssigned (optional): Filter tasks by assigned user.
+  - skip (optional): Number of records to skip.
+  - limit (optional): Number of records to return.
+- **Response**:
+
   ```json
   {
     "msg": "OK",
@@ -295,10 +313,11 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **GET /api/tasks/:id**
 
-- **Description**: Obtener un a tarea por su ID.
-- **Parámetros**:
-  - `id`: ID de la tarea.
-- **Respuesta**:
+- **Description**: Get a task by its ID.
+- **Parameters**:
+  - id: Task ID.
+- **Response**:
+
   ```json
   {
     "msg": "OK",
@@ -316,10 +335,11 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **GET /api/tasks/name/:name**
 
-- **Description**: Obtener tareas por su nombre.
-- **Parámetros**:
-  - `name`: Nombre de la tarea.
-- **Respuesta**:
+- **Description**: Get tasks by their name.
+- **Parameters**:
+  - name: Task name.
+- **Response**:
+
   ```json
   {
     "msg": "OK",
@@ -348,10 +368,11 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **GET /api/tasks/description/:description**
 
-- **Description**: Obtener tareas por su descripción.
-- **Parámetros**:
-  - `description`: Descripción de la tarea.
-- **Respuesta**:
+- **Description**: Get tasks by their description.
+- **Parameters**:
+  - description: Task description.
+- **Response**:
+
   ```json
   {
     "msg": "OK",
@@ -380,8 +401,9 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **POST /api/tasks**
 
-- **Description**: Crear una nueva tarea.
-- **Cuerpo de la Solicitud**:
+- **Description**: Create a new task.
+- **Request Body**:
+
   ```json
   {
     "name": "string",
@@ -392,7 +414,9 @@ Este documento proporciona información detallada sobre los endpoints disponible
     "projectId": "string"
   }
   ```
-- **Respuesta**:
+
+- **Response**:
+
   ```json
   {
     "msg": "OK",
@@ -411,10 +435,11 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **PUT /api/tasks/:id**
 
-- **Description**: Actualizar una tarea por su id.
-- **Parámetros**:
-  - `id`: ID de la tarea.
-- **Cuerpo de la Solicitud**:
+- **Description**: Update a task by its id.
+- **Parameters**:
+  - id: Task ID.
+- **Request Body**:
+
   ```json
   {
     "name": "string",
@@ -425,7 +450,9 @@ Este documento proporciona información detallada sobre los endpoints disponible
     "projectId": "string"
   }
   ```
-- **Respuesta**:
+
+- **Response**:
+
   ```json
   {
     "msg": "OK",
@@ -444,16 +471,19 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **PUT /api/tasks/state/:id**
 
-- **Description**: Cambiar el estado de una tarea.
-- **Parámetros**:
-  - `id`: ID de la tarea.
-- **Cuerpo de la Solicitud**:
+- **Description**: Change the status of a task.
+- **Parameters**:
+  - id: Task ID.
+- **Request Body**:
+
   ```json
   {
     "status": "string"
   }
   ```
-- **Respuesta**:
+
+- **Response**:
+
   ```json
   {
     "msg": "Status updated",
@@ -472,10 +502,10 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **PUT /api/tasks/:taskId/users/:userId**
 
-- **Description**: Asignar tarea a un usuario.
+- **Description**: Assign task to an user.
 - **Parámetros**:
-  - `taskId`: ID de la tarea.
-  - `userId`: ID del usuario.
+  - `taskId`: Task ID.
+  - `userId`: User ID.
 - **Respuesta**:
   ```json
   {
@@ -495,9 +525,9 @@ Este documento proporciona información detallada sobre los endpoints disponible
 
 ### **DELETE /api/tasks/:id**
 
-- **Description**: Borrar tarea por su ID.
+- **Description**: Delete a task by its id.
 - **Parámetros**:
-  - `id`: ID de la tarea.
+  - `id`: Task ID.
 - **Respuesta**:
   ```json
   {
@@ -505,49 +535,59 @@ Este documento proporciona información detallada sobre los endpoints disponible
   }
   ```
 
-## Información Adicional
+## Additional Information
 
-Para ejemplos detallados de solicitudes y respuestas, visita la documentación de Swagger disponible en /api-docs cuando el servidor esté en funcionamiento.
+For detailed examples of requests and responses, visit the Swagger documentation available at /api-docs when the server is running.
 
-## Arquitectura y Decisiones de Diseño
+## Architecture and Design Decisions
 
-Este proyecto sigue una arquitectura modular con una clara separación de responsabilidades:
+This project follows a modular architecture with a clear separation of responsibilities:
 
-1. **Routes**: Definen los endpoints de la API y los vinculan con los controladores correspondientes.
-2. **Controllers**: Manejan las solicitudes HTTP, invocan los servicios necesarios y envían respuestas.
-3. **Services**: Implementan la lógica de negocio, interactúan con la base de datos y gestionan operaciones complejas.
-4. **Models**: Definen la estructura de datos para los documentos de MongoDB.
-5. **Middlewares**: Gestionan aspectos transversales como la autenticación y el manejo de errores.
-6. **Validations**: Aseguran la integridad de los datos entrantes.
+1. **Routes**: Define the API endpoints and link them with the corresponding controllers.
+2. **Controllers**: Handle HTTP requests, invoke necessary services, and send responses.
+3. **Services**: Implement business logic, interact with the database, and manage complex operations.
+4. **Models**: Define the data structure for MongoDB documents.
+5. **Middlewares**: Manage cross-cutting concerns such as authentication and error handling.
+6. **Validations**: Ensure the integrity of incoming data.
 
-Decisiones de diseño:
+Design decisions:
 
-- **TypeScript**: Usado para el tipado estático, mejorando la calidad y mantenibilidad del código.
-- **Express.js**: Elegido como framework web por su simplicidad.
-- **MongoDB**: Seleccionado como base de datos por su flexibilidad con el almacenamiento basado en documentos.
-- **Autenticación con JWT**: Implementada para una autenticación de usuarios segura.
-- **Manejo de Errores**: Manejo centralizado de errores con clases personalizadas.
-- **Validación**: Validación de entrada mediante middlewares para garantizar la integridad de los datos.
-- **Estructura Modular**: Código organizado en módulos (autenticación, proyectos, tareas) para una mejor mantenibilidad y escalabilidad.
-- **Configuración de Entorno**: Uso de dotenv para gestionar configuraciones específicas del entorno.
-- **Registro de Logs**: Implementación de winston para mejorar la depuración y el monitoreo.
+- **TypeScript**: Used for static typing, improving code quality and maintainability.
+- **Express.js**: Chosen as the web framework for its simplicity and flexibility.
+- **MongoDB**: Selected as the database for its flexibility with document-based storage and scalability.
+- **JWT Authentication**: Implemented for secure user authentication and stateless authorization.
+- **Error Handling**: Centralized error handling with custom classes for consistent error responses.
+- **Validation**: Input validation through middlewares to ensure data integrity and security.
+- **Modular Structure**: Code organized into modules (authentication, projects, tasks) for better maintainability and scalability.
+- **Environment Configuration**: Use of dotenv to manage environment-specific configurations, enhancing security and deployment flexibility.
+- **Logging**: Implementation of winston for improved debugging, monitoring, and application insights.
+- **API Documentation**: Swagger integration for clear, interactive API documentation.
+- **Testing**: Comprehensive unit and integration tests to ensure reliability and ease of maintenance.
 
-## Ejecutar pruebas
+## Running Tests
 
-1. Realizar pruebas:
+To ensure the reliability and correctness of the API, we have implemented a comprehensive test suite. Follow these steps to run the tests:
+
+1. Run all tests:
 
    ```
    npm run test
    ```
 
-2. Ver cambios en directo:
+   This command will execute all test suites and provide a summary of the results.
+
+2. Watch for changes and run tests automatically:
 
    ```
    npm run test:watch
    ```
 
-3. Generar coverage:
+   This command will start the test runner in watch mode, automatically re-running tests when files are changed.
+
+3. Generate test coverage report:
 
    ```
    npm run test:coverage
    ```
+
+   This command will run the tests and generate a detailed coverage report, showing which parts of the code are covered by tests.
