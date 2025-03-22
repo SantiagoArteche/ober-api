@@ -125,9 +125,9 @@ This document provides detailed information about the available endpoints, reque
   {
     "msg": "User created",
     "newUser": {
-      "id": "string",
-      "name": "string",
-      "email": "string"
+      "_id": "6770009c69de7bafa52b6087",
+      "name": "New User",
+      "email": "newuser@gmail.com"
     }
   }
   ```
