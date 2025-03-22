@@ -17,7 +17,11 @@ export class ProjectService {
         .find()
         .limit(limit)
         .skip(skip!)
-        .populate("tasks", "_id name status");
+        .populate([
+          { path: "tasks", select: "_id name status" },
+          { path: "users", select: "name" },
+        ]);
+
       const totalDocuments = await projectModel.countDocuments();
 
       const currentPage = Math.ceil(skip! / limit + 1);
@@ -54,7 +58,10 @@ export class ProjectService {
 
   public getProjectById = async (id: string) => {
     try {
-      const findProject = await projectModel.findById(id);
+      const findProject = await projectModel.findById(id).populate([
+        { path: "tasks", select: "_id name status" },
+        { path: "users", select: "name" },
+      ]);
 
       if (!findProject) {
         this.logger.warning(`Project with id: ${id} not found.`);

@@ -26,7 +26,13 @@ export class TaskService {
         filters.assignedTo = [userAssigned];
       }
 
-      let allTasks = await taskModel.find(filters).limit(limit).skip(skip!);
+      let allTasks = await taskModel
+        .find(filters)
+        .limit(limit)
+        .skip(skip!)
+        .populate("projectId", "_id name")
+        .populate("assignedTo", "_id name");
+
       let totalDocuments = await taskModel.countDocuments(filters);
 
       if (endDate) {
@@ -77,7 +83,10 @@ export class TaskService {
 
   public getTaskById = async (id: string) => {
     try {
-      const findTask = await taskModel.findById(id);
+      const findTask = await taskModel
+        .findById(id)
+        .populate("assignedTo", "_id name")
+        .populate("projectId", "_id name");
 
       if (!findTask) {
         this.logger.warning(`Task with id ${id} not found`);
@@ -172,7 +181,6 @@ export class TaskService {
             userId as unknown as ObjectId,
             task.projectId as unknown as ObjectId
           );
-
           if (!isUserInProject) {
             this.logger.warning(
               `The user with id ${userId} is not working in the project ${task.projectId}`
@@ -345,7 +353,7 @@ export class TaskService {
 
       const [task, user] = await Promise.all([
         taskModel.findById(taskId),
-        userModel.findById(userId),
+        userModel.findById(userId).populate("assignedTo", "_id name"),
       ]);
 
       if (!task) {
